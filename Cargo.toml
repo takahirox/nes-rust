@@ -1,0 +1,10 @@
+[package]
+name = "nes-rust"
+version = "0.1.0"
+authors = ["Takahiro"]
+
+[dependencies]
+sdl2 = "0.32"
+
+[dependencies.gl]
+git = "https://github.com/bjz/gl-rs"
