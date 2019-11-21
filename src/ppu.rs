@@ -948,7 +948,8 @@ impl Ppu {
 				let base_address = (tile_index & 1) * 0x1000;
 				// 7-1 bits of tile_index maps to 0-254 tiles
 				let byte_offset = (tile_index & 0xFE) * 0x10;
-				let row = y_in_sprite as u16;
+				// Eatch 16-byte tile has 8x8 pixels then bottom half pixel needs to see next tile
+				let row = ((y_in_sprite % 8) + ((y_in_sprite & 0x8) << 1)) as u16;
 				base_address + byte_offset + row
 			}
 		};
