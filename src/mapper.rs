@@ -391,8 +391,8 @@ impl Mapper for MMC3Mapper {
 						3 => self.character_register3.store(value),
 						4 => self.character_register4.store(value),
 						5 => self.character_register5.store(value),
-						6 => self.program_register0.store(value & 0xFE),
-						_ => self.program_register1.store(value & 0xFE)
+						6 => self.program_register0.store(value & 0x3F),
+						_ => self.program_register1.store(value & 0x3F)
 					};
 				}
 			},
