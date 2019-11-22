@@ -249,12 +249,12 @@ fn operation(opc: u8) -> Operation {
 		// 0x0F => invalid
 		0x10 => Operation {
 			instruction_type: InstructionTypes::BPL,
-			cycle: 2,
+			cycle: 2, // +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x11 => Operation {
 			instruction_type: InstructionTypes::ORA,
-			cycle: 5,
+			cycle: 5, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0x12 => invalid
@@ -278,7 +278,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x19 => Operation {
 			instruction_type: InstructionTypes::ORA,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x1A => invalid
@@ -286,7 +286,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x1C => invalid
 		0x1D => Operation {
 			instruction_type: InstructionTypes::ORA,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x1E => Operation {
@@ -297,7 +297,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x1F => invalid
 		0x20 => Operation {
 			instruction_type: InstructionTypes::JSR,
-			cycle: 0,
+			cycle: 6,
 			addressing_mode: AddressingModes::Absolute
 		},
 		0x21 => Operation {
@@ -357,12 +357,12 @@ fn operation(opc: u8) -> Operation {
 		// 0x2F => invalid
 		0x30 => Operation {
 			instruction_type: InstructionTypes::BMI,
-			cycle: 2,
+			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x31 => Operation {
 			instruction_type: InstructionTypes::AND,
-			cycle: 5,
+			cycle: 5, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0x32 => invalid
@@ -386,7 +386,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x39 => Operation {
 			instruction_type: InstructionTypes::AND,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x3A => invalid
@@ -394,7 +394,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x3C => invalid
 		0x3D => Operation {
 			instruction_type: InstructionTypes::AND,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x3E => Operation {
@@ -445,7 +445,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x4B => invalid
 		0x4C => Operation {
 			instruction_type: InstructionTypes::JMP,
-			cycle: 0,
+			cycle: 3,
 			addressing_mode: AddressingModes::Absolute
 		},
 		0x4D => Operation {
@@ -461,12 +461,12 @@ fn operation(opc: u8) -> Operation {
 		// 0x4F => invalid
 		0x50 => Operation {
 			instruction_type: InstructionTypes::BVC,
-			cycle: 2,
+			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x51 => Operation {
 			instruction_type: InstructionTypes::EOR,
-			cycle: 5,
+			cycle: 5, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0x52 => invalid
@@ -490,7 +490,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x59 => Operation {
 			instruction_type: InstructionTypes::EOR,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x5A => invalid
@@ -498,7 +498,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x5C => invalid
 		0x5D => Operation {
 			instruction_type: InstructionTypes::EOR,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x5E => Operation {
@@ -549,7 +549,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x6B => invalid
 		0x6C => Operation {
 			instruction_type: InstructionTypes::JMP,
-			cycle: 0,
+			cycle: 5,
 			addressing_mode: AddressingModes::Indirect
 		},
 		0x6D => Operation {
@@ -565,12 +565,12 @@ fn operation(opc: u8) -> Operation {
 		// 0x6F => invalid
 		0x70 => Operation {
 			instruction_type: InstructionTypes::BVS,
-			cycle: 2,
+			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x71 => Operation {
 			instruction_type: InstructionTypes::ADC,
-			cycle: 5,
+			cycle: 5, // @TODO +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0x72 => invalid
@@ -594,7 +594,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x79 => Operation {
 			instruction_type: InstructionTypes::ADC,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x7A => invalid
@@ -602,7 +602,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x7C => invalid
 		0x7D => Operation {
 			instruction_type: InstructionTypes::ADC,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x7E => Operation {
@@ -665,7 +665,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x8F => invalid
 		0x90 => Operation {
 			instruction_type: InstructionTypes::BCC,
-			cycle: 2,
+			cycle: 2, // @TODO: +1 if branch suceeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x91 => Operation {
@@ -781,12 +781,12 @@ fn operation(opc: u8) -> Operation {
 		// 0xAF => invalid
 		0xB0 => Operation {
 			instruction_type: InstructionTypes::BCS,
-			cycle: 2,
+			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0xB1 => Operation {
 			instruction_type: InstructionTypes::LDA,
-			cycle: 5,
+			cycle: 5, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0xB2 => invalid
@@ -814,7 +814,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xB9 => Operation {
 			instruction_type: InstructionTypes::LDA,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		0xBA => Operation {
@@ -825,17 +825,17 @@ fn operation(opc: u8) -> Operation {
 		// 0xBB => invalid
 		0xBC => Operation {
 			instruction_type: InstructionTypes::LDY,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xBD => Operation {
 			instruction_type: InstructionTypes::LDA,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xBE => Operation {
 			instruction_type: InstructionTypes::LDX,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0xBF => invalid
@@ -901,12 +901,12 @@ fn operation(opc: u8) -> Operation {
 		// 0xCF => invalid
 		0xD0 => Operation {
 			instruction_type: InstructionTypes::BNE,
-			cycle: 2,
+			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0xD1 => Operation {
 			instruction_type: InstructionTypes::CMP,
-			cycle: 5,
+			cycle: 5, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0xD2 => invalid
@@ -930,7 +930,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xD9 => Operation {
 			instruction_type: InstructionTypes::CMP,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0xDA => invalid
@@ -938,7 +938,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xDC => invalid
 		0xDD => Operation {
 			instruction_type: InstructionTypes::CMP,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xDE => Operation {
@@ -1010,12 +1010,12 @@ fn operation(opc: u8) -> Operation {
 		// 0xEF => invalid
 		0xF0 => Operation {
 			instruction_type: InstructionTypes::BEQ,
-			cycle: 2,
+			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0xF1 => Operation {
 			instruction_type: InstructionTypes::SBC,
-			cycle: 5,
+			cycle: 5, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0xF2 => invalid
@@ -1039,7 +1039,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xF9 => Operation {
 			instruction_type: InstructionTypes::SBC,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0xFA => invalid
@@ -1047,7 +1047,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xFC => invalid
 		0xFD => Operation {
 			instruction_type: InstructionTypes::SBC,
-			cycle: 4,
+			cycle: 4, // @TODO: +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xFE => Operation {
@@ -1058,7 +1058,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xFF => invalid
 		_ => Operation {
 			instruction_type: InstructionTypes::INV,
-			cycle: 0,
+			cycle: 1,
 			addressing_mode: AddressingModes::Immediate // dummy
 		}
 	}
@@ -1149,7 +1149,7 @@ impl Cpu {
 		self.operate(&op, opc);
 		let stall_cycle = self.stall_cycle;
 		self.stall_cycle = 0;
-		stall_cycle + op.cycle as u16 + 1
+		stall_cycle + op.cycle as u16
 	}
 
 	fn fetch(&mut self) -> u8 {
