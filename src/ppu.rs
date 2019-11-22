@@ -276,7 +276,7 @@ impl Ppu {
 			},
 			// oamdata load
 			0x2004 => {
-				let value = self.primary_oam.load(self.oamaddr.load() as u16);
+				let value = self.primary_oam.load(self.oamaddr.load());
 				self.data_bus = value;
 				value
 			},
@@ -331,7 +331,7 @@ impl Ppu {
 			// oamdata store
 			0x2004 => {
 				self.oamdata.store(value);
-				self.primary_oam.store(self.oamaddr.load() as u16, value);
+				self.primary_oam.store(self.oamaddr.load(), value);
 				self.oamaddr.increment();
 			},
 			// ppuscroll store
@@ -1238,11 +1238,11 @@ impl SpritesManager {
 		}
 	}
 
-	fn load(&self, address: u16) -> u8 {
+	fn load(&self, address: u8) -> u8 {
 		self.memory.load(address as u32)
 	}
 
-	fn store(&mut self, address: u16, value: u8) {
+	fn store(&mut self, address: u8, value: u8) {
 		self.memory.store(address as u32, value);
 	}
 
@@ -1252,22 +1252,22 @@ impl SpritesManager {
 
 	fn get(&self, index: u8) -> Sprite {
 		Sprite {
-			byte0: self.load(index as u16 * 4 + 0),
-			byte1: self.load(index as u16 * 4 + 1),
-			byte2: self.load(index as u16 * 4 + 2),
-			byte3: self.load(index as u16 * 4 + 3)
+			byte0: self.load(index * 4 + 0),
+			byte1: self.load(index * 4 + 1),
+			byte2: self.load(index * 4 + 2),
+			byte3: self.load(index * 4 + 3)
 		}
 	}
 
 	fn copy(&mut self, index: u8, sprite: Sprite) {
-		self.store(index as u16 * 4 + 0, sprite.byte0);
-		self.store(index as u16 * 4 + 1, sprite.byte1);
-		self.store(index as u16 * 4 + 2, sprite.byte2);
-		self.store(index as u16 * 4 + 3, sprite.byte3);
+		self.store(index * 4 + 0, sprite.byte0);
+		self.store(index * 4 + 1, sprite.byte1);
+		self.store(index * 4 + 2, sprite.byte2);
+		self.store(index * 4 + 3, sprite.byte3);
 	}
 
 	fn reset(&mut self) {
-		for i in 0..self.get_num() as u16 {
+		for i in 0..self.get_num() {
 			self.store(i * 4 + 0, 0xff);
 			self.store(i * 4 + 1, 0xff);
 			self.store(i * 4 + 2, 0xff);

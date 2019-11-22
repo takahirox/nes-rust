@@ -1175,6 +1175,7 @@ impl Cpu {
 		}
 	}
 
+	// @TODO: Clean up if needed
 	fn operate(&mut self, op: &Operation, opc: u8) {
 		match op.instruction_type {
 			InstructionTypes::ADC => {
