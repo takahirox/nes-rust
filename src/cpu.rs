@@ -975,7 +975,6 @@ fn operation(opc: u8) -> Operation {
 			addressing_mode: AddressingModes::ZeroPage
 		},
 		// 0xE7 => invalid
-
 		0xE8 => Operation {
 			instruction_type: InstructionTypes::INX,
 			cycle: 2,
@@ -1090,6 +1089,7 @@ impl Cpu {
 	pub fn bootup(&mut self) {
 		self.bootup_internal();
 		self.ppu.bootup();
+		self.apu.bootup();
 	}
 
 	fn bootup_internal(&mut self) {
@@ -1121,7 +1121,9 @@ impl Cpu {
 			self.ppu.step();
 		}
 		// @TODO: Fix APU clock timing
-		self.apu.step();
+		for _i in 0..stall_cycles {
+			self.apu.step();
+		}
 	}
 
 	fn step_internal(&mut self) -> u16 {
