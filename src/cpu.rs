@@ -1126,12 +1126,20 @@ impl Cpu {
 		}
 	}
 
-	fn step_internal(&mut self) -> u16 {
-		if self.ppu.cycle == 0 {
-			// @TODO: Fix input handle timing
-			self.joypad1.handle_inputs();
+	pub fn step_frame(&mut self) {
+		// @TODO: More precise frame update detection?
+		let ppu_frame = self.ppu.frame;
+		self.joypad1.handle_inputs();
+		while true {
+			self.step();
+			if ppu_frame != self.ppu.frame {
+				break;
+			}
 		}
+		self.apu.resume_audio();
+	}
 
+	fn step_internal(&mut self) -> u16 {
 		// @TODO: What if both NMI and IRQ happen?
 		if self.ppu.nmi_interrupted {
 			self.ppu.nmi_interrupted = false;

@@ -7,15 +7,21 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use input::Input;
 use display::Display;
+use audio::Audio;
+use std::time::Duration;
 
 pub struct Nes {
 	cpu: Cpu
 }
 
 impl Nes {
-	pub fn new(input: Input, display: Display) -> Self {
+	pub fn new(input: Input, display: Display, audio: Audio) -> Self {
 		Nes {
-			cpu: Cpu::new(Joypad::new(input), Ppu::new(display), Apu::new())
+			cpu: Cpu::new(
+				Joypad::new(input),
+				Ppu::new(display),
+				Apu::new(audio)
+			)
 		}
 	}
 
@@ -26,11 +32,20 @@ impl Nes {
 	pub fn run(&mut self) {
 		self.cpu.bootup();
 		while true {
-			self.step();
+			self.step_frame();
+			// @TODO: Fix sleep duration time
+			// @TODO: timer should depend on platform
+			//        (For example we use requestAnimationFrame on WASM + Web)
+			//        so should we move it out from this class?
+			std::thread::sleep(Duration::from_millis(2));
 		}
 	}
 
 	fn step(&mut self) {
 		self.cpu.step();
+	}
+
+	fn step_frame(&mut self) {
+		self.cpu.step_frame();
 	}
 }

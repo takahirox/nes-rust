@@ -1,4 +1,5 @@
 use register::Register;
+use audio::Audio;
 
 /*
  * Audio Processing Unit implementation. Consists of
@@ -25,7 +26,9 @@ pub struct Apu {
 	sample_period: u32,
 	frame_irq_active: bool,
 	dmc_irq_active: bool,
-	pub irq_interrupted: bool
+	pub irq_interrupted: bool,
+
+	audio: Audio
 }
 
 static LENGTH_TABLE: [u8; 32] = [
@@ -36,7 +39,7 @@ static LENGTH_TABLE: [u8; 32] = [
 ];
 
 impl Apu {
-	pub fn new() -> Self {
+	pub fn new(audio: Audio) -> Self {
 		Apu {
 			cycle: 0,
 			step: 0,
@@ -47,15 +50,20 @@ impl Apu {
 			dmc: ApuDmc::new(),
 			status: Register::<u8>::new(),
 			frame: ApuFrameRegister::new(),
-			sample_period: 1789773, // @TODO: Fix me
+			sample_period: 1789773 / 44100, // @TODO: Fix me
 			frame_irq_active: false,
 			dmc_irq_active: false,
-			irq_interrupted: false
+			irq_interrupted: false,
+			audio: audio
 		}
 	}
 
 	pub fn bootup(&mut self) {
 		self.status.store(0);
+	}
+
+	pub fn resume_audio(&mut self) {
+		self.audio.resume();
 	}
 
 	// Expects being called at CPU clock rate
@@ -259,7 +267,7 @@ impl Apu {
 		};
 	}
 
-	fn sample(&self) {
+	fn sample(&mut self) {
 		// Calculates the audio output within the range of 0.0 to 1.0.
 		// Refer to https://wiki.nesdev.com/w/index.php/APU_Mixer
 
@@ -280,8 +288,7 @@ impl Apu {
 			tnd_out = 159.79 / (1.0 / (triangle / 8227.0 + noise / 12241.0 + dmc / 22638.0) + 100.0);
 		}
 
-		// @TODO: Implement audio output
-		// self.audio.push(pulse_out + tnd_out);
+		self.audio.push(pulse_out + tnd_out);
 	}
 }
 

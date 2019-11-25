@@ -8,6 +8,7 @@ mod apu;
 mod input;
 mod joypad;
 mod display;
+mod audio;
 mod nes;
 extern crate sdl2;
 
@@ -20,6 +21,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use input::Input;
 use display::Display;
+use audio::Audio;
 
 fn main() -> std::io::Result<()> {
 	let args: Vec<String> = env::args().collect();
@@ -38,9 +40,11 @@ fn main() -> std::io::Result<()> {
 
 	let sdl = sdl2::init().unwrap();
 	let event_pump = sdl.event_pump().unwrap();
+	let audio_subsystem = sdl.audio().unwrap();
 	let input = Input::new(event_pump);
 	let display = Display::new(sdl);
-	let mut nes = Nes::new(input, display);
+	let audio = Audio::new(audio_subsystem);
+	let mut nes = Nes::new(input, display, audio);
 	nes.set_rom(rom);
 	nes.run();
 	Ok(())
