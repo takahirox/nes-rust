@@ -50,7 +50,7 @@ impl Apu {
 			dmc: ApuDmc::new(),
 			status: Register::<u8>::new(),
 			frame: ApuFrameRegister::new(),
-			sample_period: 1789773 / 44100, // @TODO: Fix me
+			sample_period: 1764000 / 44100, // @TODO: Fix me
 			frame_irq_active: false,
 			dmc_irq_active: false,
 			irq_interrupted: false,

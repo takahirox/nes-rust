@@ -1,16 +1,17 @@
 use sdl2::audio::{AudioDevice, AudioCallback, AudioSpecDesired};
 use sdl2::AudioSubsystem;
 
-const BUFFER_CAPACITY: usize = 8192;
+const BUFFER_CAPACITY: usize = 4410 * 2;
 static mut buffer_index: usize = 0;
 static mut buffer: [f32; BUFFER_CAPACITY] = [0.0; BUFFER_CAPACITY];
+static mut previous_value: f32 = 0.0;
 
 pub struct Audio {
 	device: AudioDevice<NesAudioCallback>
 }
 
 struct NesAudioCallback {
-
+	volume: f32
 }
 
 impl AudioCallback for NesAudioCallback {
@@ -19,15 +20,23 @@ impl AudioCallback for NesAudioCallback {
 	fn callback(&mut self, buf: &mut [Self::Channel]) {
 		// @TODO: Don't use unsafe
 		unsafe {
-			let mut i = 0;
+			let mut index = 0;
 			for b in buf.iter_mut() {
-				if i >= BUFFER_CAPACITY || i >= buffer_index {
-					break;
-				}
-				*b = buffer[i];
-				i += 1;
+				*b = match index >= buffer_index {
+					true => previous_value,
+					false => buffer[index]
+				};
+				previous_value = *b;
+				*b *= self.volume;
+				index += 1;
 			}
-			buffer_index = 0;
+			// @TODO: Optimize
+			index = 0;
+			for i in buf.len()..buffer_index {
+				buffer[index] = buffer[i];
+				index += 1;
+			}
+			buffer_index = index;
 		}
 	}
 }
@@ -40,7 +49,11 @@ impl Audio {
 			samples: Some(4410)
 		};
 		Audio {
-			device: subsystem.open_playback(None, &spec, |_| NesAudioCallback {}).unwrap(),
+			device: subsystem.open_playback(
+				None,
+				&spec,
+				|_| NesAudioCallback {volume: 0.25}
+			).unwrap()
 		}
 	}
 
@@ -59,4 +72,3 @@ impl Audio {
 		}
 	}
 }
-
