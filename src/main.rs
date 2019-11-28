@@ -5,11 +5,15 @@ mod rom;
 mod cpu;
 mod ppu;
 mod apu;
-mod input;
 mod joypad;
+mod input;
 mod display;
 mod audio;
 mod nes;
+
+mod sdl2_input;
+mod sdl2_display;
+mod sdl2_audio;
 extern crate sdl2;
 
 use std::env;
@@ -19,9 +23,10 @@ use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
 use std::rc::Rc;
-use input::Input;
-use display::Display;
-use audio::Audio;
+
+use sdl2_input::Sdl2Input;
+use sdl2_display::Sdl2Display;
+use sdl2_audio::Sdl2Audio;
 
 fn main() -> std::io::Result<()> {
 	let args: Vec<String> = env::args().collect();
@@ -41,9 +46,9 @@ fn main() -> std::io::Result<()> {
 	let sdl = sdl2::init().unwrap();
 	let event_pump = sdl.event_pump().unwrap();
 	let audio_subsystem = sdl.audio().unwrap();
-	let input = Input::new(event_pump);
-	let display = Display::new(sdl);
-	let audio = Audio::new(audio_subsystem);
+	let input = Box::new(Sdl2Input::new(event_pump));
+	let display = Box::new(Sdl2Display::new(sdl));
+	let audio = Box::new(Sdl2Audio::new(audio_subsystem));
 	let mut nes = Nes::new(input, display, audio);
 	nes.set_rom(rom);
 	nes.run();
