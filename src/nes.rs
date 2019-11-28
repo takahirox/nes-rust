@@ -15,7 +15,7 @@ pub struct Nes {
 }
 
 impl Nes {
-	pub fn new(input: Input, display: Display, audio: Audio) -> Self {
+	pub fn new(input: Box<Input>, display: Box<Display>, audio: Box<Audio>) -> Self {
 		Nes {
 			cpu: Cpu::new(
 				Joypad::new(input),

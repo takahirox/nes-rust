@@ -120,7 +120,7 @@ pub struct Ppu {
 
 	// -- 
 
-	display: Display,
+	display: Box<Display>,
 
 	rom: Option<Rc<RefCell<Rom>>>,
 
@@ -196,7 +196,7 @@ static PALETTES: [u32; 0x40] = [
 ];
 
 impl Ppu {
-	pub fn new(display: Display) -> Self {
+	pub fn new(display: Box<Display>) -> Self {
 		Ppu {
 			frame: 0,
 			cycle: 0,

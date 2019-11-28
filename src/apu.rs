@@ -28,7 +28,7 @@ pub struct Apu {
 	dmc_irq_active: bool,
 	pub irq_interrupted: bool,
 
-	audio: Audio
+	audio: Box<Audio>
 }
 
 static LENGTH_TABLE: [u8; 32] = [
@@ -39,7 +39,7 @@ static LENGTH_TABLE: [u8; 32] = [
 ];
 
 impl Apu {
-	pub fn new(audio: Audio) -> Self {
+	pub fn new(audio: Box<Audio>) -> Self {
 		Apu {
 			cycle: 0,
 			step: 0,

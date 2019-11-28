@@ -37,11 +37,11 @@ pub struct Joypad {
 	latch: u8,
 	current_button: u8,
 	buttons: [bool; BUTTON_NUM as usize],
-	input: Input
+	input: Box<Input>
 }
 
 impl Joypad {
-	pub fn new(input: Input) -> Self {
+	pub fn new(input: Box<Input>) -> Self {
 		Joypad {
 			register: Register::<u8>::new(),
 			latch: 0,
