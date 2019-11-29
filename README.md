@@ -2,6 +2,8 @@
 
 nes-rust is a NES emulator written in Rust.
 
+[Demo](https://raw.githack.com/takahirox/nes-rust/master/index.html)
+
 # Screenshots
 
 [nestest](http://wiki.nesdev.com/w/index.php/Emulator_tests)
