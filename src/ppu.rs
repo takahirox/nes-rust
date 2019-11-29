@@ -3,6 +3,7 @@ use memory::Memory;
 use rom::Rom;
 use rom::Mirrorings;
 use display::Display;
+use display::PIXELS_CAPACITY;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -246,6 +247,10 @@ impl Ppu {
 
 	pub fn bootup(&mut self) {
 		self.ppustatus.store(0x80);
+	}
+
+	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
+		self.display.copy_pixels(pixels);
 	}
 
 	pub fn step(&mut self) {

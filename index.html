@@ -1,0 +1,190 @@
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <style>
+    canvas {
+      background: #000;
+      margin: 10px;
+    }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import init, { WasmNes, Button } from "./wasm/nes_rust.js";
+
+      const setupAudio = (wasm, nes) => {
+        const audioContext = AudioContext || webkitAudioContext;
+
+        if (audioContext === undefined) {
+          throw new Error('This browser seems not to support AudioContext.');
+        }
+
+        const bufferLength = 4096;
+        const context = new audioContext({sampleRate: 44100});
+        const scriptProcessor = context.createScriptProcessor(bufferLength, 0, 1);
+
+        const sampleBufferPtr = (nes.sample_buffer_ptr() / 4) | 0;
+        const wasmMemory = new Float32Array(wasm.memory.buffer);
+
+        scriptProcessor.onaudioprocess = e => {
+          nes.update_sample_buffer();
+          const data = e.outputBuffer.getChannelData(0);
+          for (let i = 0; i < bufferLength; i++) {
+            data[i] = wasmMemory[sampleBufferPtr + i] * 0.25;
+          }
+        };
+
+        scriptProcessor.connect(context.destination);
+        const sampleRate = context.sampleRate;
+      };
+
+      const start = romArrayBuffer => {
+        // @TODO: Call init beforehand
+        init()
+          .then(wasm => run(wasm, new Uint8Array(romArrayBuffer)))
+          .catch(error => console.error(error));
+      };
+
+      const run = (wasm, romContentArray) => {
+        const width = 256;
+        const height = 240;
+        const canvas = document.getElementById('nesCanvas');
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.createImageData(width, height);
+        const pixels = new Uint8Array(imageData.data.buffer);
+        const nes = WasmNes.new(romContentArray);
+        setupAudio(wasm, nes);
+        const pixelsPtr = nes.pixels_ptr();
+        nes.bootup();
+        const wasmMemory = new Uint8Array(wasm.memory.buffer);
+        const step_frame = () => {
+          requestAnimationFrame(step_frame);
+          nes.step_frame();
+          nes.update_pixels();
+          for (let y = 0; y < 240; y++) {
+            for (let x = 0; x < 256; x++) {
+              const baseIndex = y * 256 + x;
+              pixels[baseIndex * 4] = wasmMemory[pixelsPtr + baseIndex * 3];
+              pixels[baseIndex * 4 + 1] = wasmMemory[pixelsPtr + baseIndex * 3 + 1];
+              pixels[baseIndex * 4 + 2] = wasmMemory[pixelsPtr + baseIndex * 3 + 2];
+              pixels[baseIndex * 4 + 3] = 255;
+            }
+          }
+          ctx.putImageData(imageData, 0, 0);
+        };
+
+        const getButton = keyCode => {
+          switch (keyCode) {
+            case 32: // space
+              return Button.Start;
+            case 37: // Left
+              return Button.Left;
+            case 38: // Up
+              return Button.Up;
+            case 39: // Right
+              return Button.Right;
+            case 40: // Down
+              return Button.Down;
+            case 65: // A
+              return Button.A;
+            case 66: // B
+              return Button.B;
+            case 83: // S
+              return Button.Select;
+            default:
+              return null; 
+          }
+        };
+
+        window.addEventListener('keydown', event => {
+          const button = getButton(event.keyCode);
+          if (button === null) {
+            return;
+          }
+          nes.press_button(button);
+          event.preventDefault();
+        }, false);
+
+        window.addEventListener('keyup', event => {
+          const button = getButton(event.keyCode);
+          if (button === null) {
+            return;
+          }
+          nes.release_button(button);
+          event.preventDefault();
+        }, false);
+
+        step_frame();
+      };
+
+      let romSelected = false;
+
+      document.getElementById('romSelect').addEventListener('change', event => {
+        if (romSelected) return;
+        romSelected = true;
+        const select = event.target;
+        const option = select.selectedOptions[0];
+        const filename = option.value;
+        if (!filename) {
+          return;
+        }
+        select.disabled = true; // @TODO: Reset Nes instead
+        fetch('./roms/' + filename)
+          .then(result => result.arrayBuffer())
+          .then(start)
+          .catch(error => console.error(error));
+      });
+
+      window.addEventListener('dragover', event => {
+        event.preventDefault();
+      }, false);
+
+      window.addEventListener('drop', event => {
+        event.preventDefault();
+        if (romSelected) return;
+        romSelected = true;
+        document.getElementById('romSelect').disabled = true; // @TODO: Reset Nes instead
+        const reader = new FileReader();
+        reader.onload = e => {
+          start(e.target.result);
+        };
+        reader.onerror = e => {
+          console.error(e);
+        };
+        reader.readAsArrayBuffer(event.dataTransfer.files[0]);
+      }, false);
+    </script>
+    <p><a href="https://github.com/takahirox/nes-rust">NES emulator in Rust</a></p>
+    <div>
+      <select id="romSelect">
+        <option value="" selected>-- select rom --</option>
+        <option value="mguard.nes">Meteo Guard</option>
+        <option value="nestest.nes">nestest</option>
+        <option value="pong1k.nes">Pong 1k2p</option>
+        <option value="Sgt. Helmet - Training Day (2013)(The Mojon Twins)[!].nes">Sgt. Helmet</option>
+        <option value="The Invasion.nes">The Invasion</option>
+      </select>
+      or Drag and Drop your own rom file
+    </div>
+    <div>
+      <canvas id="nesCanvas" width="256" height="240"></canvas>
+    </div>
+    <div>
+      <ul>
+        <li>Cursor - Cursor</li>
+        <li>A - A</li>
+        <li>B - B</li>
+        <li>Space - Start</li>
+        <li>S - Select</li>
+      </ul>
+    </div>
+    <div>
+      <p>NES Roms Copyright</p>
+      <ul>
+        <li><a href="https://wiki.nesdev.com/w/index.php/Emulator_tests">nestest</a></li>
+        <li><a href="http://slydogstudios.org/">Meteo Guard, Pong 1k2p, The Invasion</a></li>
+        <li><a href="http://www.mojontwins.com/juegos_mojonos/sgt-helmet-training-day-nes/">Sgt. Helmet Training Day</a></li>
+      </ul>
+    </div>
+  </body>
+</html>
