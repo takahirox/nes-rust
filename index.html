@@ -6,6 +6,18 @@
       background: #000;
       margin: 10px;
     }
+    .actual {
+      width: 256;
+      height: 240;
+    }
+    .double {
+      width: 512;
+      height: 480;
+    }
+    .quadruple {
+      width: 1024;
+      height: 960;
+    }
     </style>
   </head>
   <body>
@@ -147,6 +159,8 @@
         stepFrame();
       };
 
+      // rom load
+
       let romSelected = false;
 
       document.getElementById('romSelect').addEventListener('change', event => {
@@ -183,6 +197,25 @@
         };
         reader.readAsArrayBuffer(event.dataTransfer.files[0]);
       }, false);
+
+      // screen size
+
+      document.getElementById('screenSizeSelect').addEventListener('change', event => {
+        const select = event.target;
+        const option = select.selectedOptions[0];
+        const className = option.value;
+        if (!className) {
+          return;
+        }
+        const canvas = document.getElementById('nesCanvas');
+        for (const name of ['actual', 'double', 'quadruple']) {
+          if (name === className) {
+            canvas.classList.add(name);
+          } else {
+            canvas.classList.remove(name);
+          }
+        }
+      });
     </script>
     <p><a href="https://github.com/takahirox/nes-rust">NES emulator in Rust</a></p>
     <div>
@@ -199,7 +232,14 @@
     <div>
       <canvas id="nesCanvas" width="256" height="240"></canvas>
     </div>
-    <div><span id="fpsSpan">-</span> fps</div>
+    <div>
+      <select id="screenSizeSelect">
+        <option value="actual" selected>256x240</optioin>
+        <option value="double">512x480</optioin>
+        <option value="quadruple">1024x960</optioin>
+      </select>
+      <span id="fpsSpan">--.--</span> fps
+    </div>
     <div>
       <ul>
         <li>Cursor - Cursor</li>
