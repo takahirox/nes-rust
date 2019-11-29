@@ -123,6 +123,10 @@
         };
 
         window.addEventListener('keydown', event => {
+          if (event.keyCode === 82) { // R
+            nes.reset();
+            return;
+          }
           const button = getButton(event.keyCode);
           if (button === null) {
             return;
@@ -203,6 +207,7 @@
         <li>B - B</li>
         <li>Space - Start</li>
         <li>S - Select</li>
+        <li>R - Reset</li>
       </ul>
     </div>
     <div>

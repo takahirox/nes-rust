@@ -60,7 +60,12 @@ impl Apu {
 	}
 
 	pub fn bootup(&mut self) {
-		self.status.store(0);
+		self.status.store(0x00);
+	}
+
+	pub fn reset(&mut self) {
+		self.status.store(0x00);
+		// @TODO: Implement properly
 	}
 
 	pub fn resume_audio(&mut self) {
