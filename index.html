@@ -57,8 +57,32 @@
         const pixelsPtr = nes.pixels_ptr();
         nes.bootup();
         const wasmMemory = new Uint8Array(wasm.memory.buffer);
-        const step_frame = () => {
-          requestAnimationFrame(step_frame);
+
+        // FPS counter
+
+	let totalElapsedTime = 0.0;
+        let previousTime = performance.now();
+        let frameCount = 0;
+        const fpsSpan = document.getElementById('fpsSpan');
+
+        const countFps = () => {
+          frameCount++;
+          const currentTime = performance.now();
+          const elapsedTime = currentTime - previousTime;
+          totalElapsedTime += elapsedTime;
+          previousTime = currentTime;
+          if ((frameCount % 60) === 0) {
+            fpsSpan.textContent = (1000.0 / (totalElapsedTime / 60)).toFixed(2);
+            totalElapsedTime = 0.0;
+            frameCount = 0;
+          }
+        }
+
+        // animation frame loop
+
+        const stepFrame = () => {
+          requestAnimationFrame(stepFrame);
+          countFps();
           nes.step_frame();
           nes.update_pixels();
           for (let y = 0; y < 240; y++) {
@@ -72,6 +96,8 @@
           }
           ctx.putImageData(imageData, 0, 0);
         };
+
+        // joypad event listener setup
 
         const getButton = keyCode => {
           switch (keyCode) {
@@ -114,7 +140,7 @@
           event.preventDefault();
         }, false);
 
-        step_frame();
+        stepFrame();
       };
 
       let romSelected = false;
@@ -169,6 +195,7 @@
     <div>
       <canvas id="nesCanvas" width="256" height="240"></canvas>
     </div>
+    <div><span id="fpsSpan">-</span> fps</div>
     <div>
       <ul>
         <li>Cursor - Cursor</li>
