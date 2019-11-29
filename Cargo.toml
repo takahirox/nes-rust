@@ -3,8 +3,20 @@ name = "nes-rust"
 version = "0.1.0"
 authors = ["Takahiro"]
 
-[dependencies]
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
 sdl2 = "0.32"
+
+[dependencies]
+wasm-bindgen = "0.2.55"
 
 [dependencies.gl]
 git = "https://github.com/bjz/gl-rs"
+
+[[bin]]
+name = "standalone"
+path = "src/main.rs"
+
+[lib]
+name = "nes_rust"
+path = "src/wasm.rs"
+crate-type = ["cdylib"]

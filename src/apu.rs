@@ -1,5 +1,6 @@
 use register::Register;
 use audio::Audio;
+use audio::BUFFER_CAPACITY;
 
 /*
  * Audio Processing Unit implementation. Consists of
@@ -64,6 +65,12 @@ impl Apu {
 
 	pub fn resume_audio(&mut self) {
 		self.audio.resume();
+	}
+
+	// For WASM
+
+	pub fn copy_sample_buffer(&mut self, sample_buffer: &mut [f32; BUFFER_CAPACITY]) {
+		self.audio.copy_sample_buffer(sample_buffer);
 	}
 
 	// Expects being called at CPU clock rate

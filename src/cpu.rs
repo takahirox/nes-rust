@@ -3,7 +3,10 @@ use memory::Memory;
 use rom::Rom;
 use ppu::Ppu;
 use apu::Apu;
+use joypad;
 use joypad::Joypad;
+use display::PIXELS_CAPACITY;
+use audio::BUFFER_CAPACITY;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -1114,6 +1117,26 @@ impl Cpu {
 		self.p.set_i();
 		self.interrupt(Interrupts::RESET);
 	}
+
+	// For WASM 
+
+	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
+		self.ppu.copy_pixels(pixels);
+	}
+
+	pub fn copy_sample_buffer(&mut self, buffer: &mut [f32; BUFFER_CAPACITY]) {
+		self.apu.copy_sample_buffer(buffer);
+	}
+
+	pub fn press_button(&mut self, button: joypad::Button) {
+		self.joypad1.press_button(button);
+	}
+
+	pub fn release_button(&mut self, button: joypad::Button) {
+		self.joypad1.release_button(button);
+	}
+
+	//
 
 	pub fn step(&mut self) {
 		let stall_cycles = self.step_internal();

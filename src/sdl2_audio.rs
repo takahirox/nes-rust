@@ -1,8 +1,8 @@
 use audio::Audio;
+use audio::BUFFER_CAPACITY;
 use sdl2::audio::{AudioDevice, AudioCallback, AudioSpecDesired};
 use sdl2::AudioSubsystem;
 
-const BUFFER_CAPACITY: usize = 4410 * 2;
 static mut buffer_index: usize = 0;
 static mut buffer: [f32; BUFFER_CAPACITY] = [0.0; BUFFER_CAPACITY];
 static mut previous_value: f32 = 0.0;
@@ -47,7 +47,7 @@ impl Sdl2Audio {
 		let spec = AudioSpecDesired {
 			freq: Some(44100),
 			channels: Some(1),
-			samples: Some(4410)
+			samples: Some(4096)
 		};
 		Sdl2Audio {
 			device: subsystem.open_playback(
@@ -73,5 +73,8 @@ impl Audio for Sdl2Audio {
 			buffer[buffer_index] = value;
 			buffer_index += 1;
 		}
+	}
+
+	fn copy_sample_buffer(&mut self, sample_buffer: &mut [f32; BUFFER_CAPACITY]) {
 	}
 }
