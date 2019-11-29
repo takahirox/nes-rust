@@ -1113,9 +1113,15 @@ impl Cpu {
 	}
 
 	pub fn reset(&mut self) {
+		self.reset_internal();
+		self.ppu.reset();
+		self.apu.reset();
+		self.interrupt(Interrupts::RESET);
+	}
+
+	fn reset_internal(&mut self) {
 		self.sp.sub(3);
 		self.p.set_i();
-		self.interrupt(Interrupts::RESET);
 	}
 
 	// For WASM 

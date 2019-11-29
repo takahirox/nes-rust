@@ -249,6 +249,14 @@ impl Ppu {
 		self.ppustatus.store(0x80);
 	}
 
+	pub fn reset(&mut self) {
+		self.ppuctrl.store(0x00);
+		self.ppumask.store(0x00);
+		self.ppuscroll.store(0x00);
+		self.ppudata.store(0x00);
+		self.register_first_store = true;
+	}
+
 	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
 		self.display.copy_pixels(pixels);
 	}
