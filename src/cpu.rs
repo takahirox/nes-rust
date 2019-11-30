@@ -22,10 +22,13 @@ pub struct Cpu {
 	x: Register<u8>,
 	y: Register<u8>,
 	p: CpuStatusRegister,
+
 	// CPU inside RAM
 	ram: Memory,
-	//
-	stall_cycle: u16,
+
+	// manage additional stall cycles eg. DMA or branch success
+	stall_cycles: u16,
+
 	// other devices
 	ppu: Ppu,
 	apu: Apu,
@@ -360,7 +363,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x2F => invalid
 		0x30 => Operation {
 			instruction_type: InstructionTypes::BMI,
-			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
+			cycle: 2, // +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x31 => Operation {
@@ -464,7 +467,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x4F => invalid
 		0x50 => Operation {
 			instruction_type: InstructionTypes::BVC,
-			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
+			cycle: 2, // +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x51 => Operation {
@@ -568,7 +571,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x6F => invalid
 		0x70 => Operation {
 			instruction_type: InstructionTypes::BVS,
-			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
+			cycle: 2, // +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x71 => Operation {
@@ -668,7 +671,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x8F => invalid
 		0x90 => Operation {
 			instruction_type: InstructionTypes::BCC,
-			cycle: 2, // @TODO: +1 if branch suceeds, +2 if to a new page
+			cycle: 2, // +1 if branch suceeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0x91 => Operation {
@@ -784,7 +787,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xAF => invalid
 		0xB0 => Operation {
 			instruction_type: InstructionTypes::BCS,
-			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
+			cycle: 2, // +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0xB1 => Operation {
@@ -904,7 +907,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xCF => invalid
 		0xD0 => Operation {
 			instruction_type: InstructionTypes::BNE,
-			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
+			cycle: 2, // +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0xD1 => Operation {
@@ -1012,7 +1015,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xEF => invalid
 		0xF0 => Operation {
 			instruction_type: InstructionTypes::BEQ,
-			cycle: 2, // @TODO: +1 if branch succeeds, +2 if to a new page
+			cycle: 2, // +1 if branch succeeds, +2 if to a new page
 			addressing_mode: AddressingModes::Relative
 		},
 		0xF1 => Operation {
@@ -1076,7 +1079,7 @@ impl Cpu {
 			y: Register::<u8>::new(),
 			p: CpuStatusRegister::new(),
 			ram: Memory::new(vec![0; 64 * 1024]), // 64KB
-			stall_cycle: 0,
+			stall_cycles: 0,
 			ppu: ppu,
 			apu: apu,
 			joypad1: joypad,
@@ -1186,9 +1189,9 @@ impl Cpu {
 		let opc = self.fetch();
 		let op = self.decode(opc);
 		self.operate(&op, opc);
-		let stall_cycle = self.stall_cycle;
-		self.stall_cycle = 0;
-		stall_cycle + op.cycle as u16
+		let stall_cycles = self.stall_cycles;
+		self.stall_cycles = 0;
+		stall_cycles + op.cycle as u16
 	}
 
 	fn fetch(&mut self) -> u8 {
@@ -1210,7 +1213,14 @@ impl Cpu {
 	fn do_branch(&mut self, op: &Operation, flag: bool) {
 		let result = self.load_with_addressing_mode(&op);
 		if flag {
+			// stall_cycle + 1 if branch succeeds
+			self.stall_cycles += 1;
+			let currentPage = self.pc.load() & 0xff00;
 			self.pc.add(result);
+			if currentPage != (self.pc.load() & 0xff00) {
+				// stall_cycle + 1 if across page
+				self.stall_cycles += 1;
+			}
 		}
 	}
 
@@ -1755,7 +1765,7 @@ impl Cpu {
 			}
 
 			// @TODO
-			self.stall_cycle += 514;
+			self.stall_cycles += 514;
 		}
 
 		if address == 0x4015 {
