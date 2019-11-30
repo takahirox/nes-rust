@@ -255,6 +255,11 @@ impl Ppu {
 		self.ppuscroll.store(0x00);
 		self.ppudata.store(0x00);
 		self.register_first_store = true;
+		self.frame = 0;
+		// not sure if I should really reset scanline and cycle
+		// but I do for now
+		self.scanline = 0;
+		self.cycle = 0;
 	}
 
 	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
