@@ -336,7 +336,18 @@ impl Ppu {
 					return;
 				}
 
+				let previousNmiEnabled = self.ppuctrl.is_nmi_enabled();
 				self.ppuctrl.store(value);
+
+				// Immediately generate an NMI if the PPU is currently
+				// in vertical blank, PPUSTATUS vblank flag is still set,
+				// and changing the NMI flag from 0 to 1
+				if self.ppustatus.is_vblank() &&
+					!previousNmiEnabled &&
+					self.ppuctrl.is_nmi_enabled() {
+					self.nmi_interrupted = true;
+				}
+
 				// Copy the 1-0 bits of value to 11-10 bits of temporal vram_address for scrolling
 				// Refer to http://wiki.nesdev.com/w/index.php/PPU_scrolling
 				self.temporal_vram_address &= 0xF3FF;
@@ -1058,9 +1069,6 @@ impl PpuControlRegister {
 		self.register.load()
 	}
 
-	// @TODO: Immediately generate an NMI if the PPU is currently
-	//        in vertical blank, PPUSTATUS vblank flag is still set,
-	//        and changing the NMI flag from 0 to 1
 	fn store(&mut self, value: u8) {
 		self.register.store(value);
 	}
@@ -1224,6 +1232,10 @@ impl PpuStatusRegister {
 
 	fn clear_vblank(&mut self) {
 		self.register.clear_bit(7);
+	}
+
+	fn is_vblank(&mut self) -> bool {
+		self.register.is_bit_set(7)
 	}
 
 	// Bit 6. Sprite zero hit.
