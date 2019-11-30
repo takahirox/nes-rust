@@ -329,9 +329,13 @@ impl Ppu {
 
 		match address {
 			// ppuctrl store
-			// @TODO: Ignore the write to this register
-			//        for about 30k cycles after power/reset.
 			0x2000 => {
+				// Ignore the write to this register
+				// for about 30k cycles after power/reset.
+				if self.frame == 0 && self.scanline <= 88 {
+					return;
+				}
+
 				self.ppuctrl.store(value);
 				// Copy the 1-0 bits of value to 11-10 bits of temporal vram_address for scrolling
 				// Refer to http://wiki.nesdev.com/w/index.php/PPU_scrolling
