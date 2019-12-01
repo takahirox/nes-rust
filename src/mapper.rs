@@ -341,7 +341,7 @@ impl MMC3Mapper {
 
 impl Mapper for MMC3Mapper {
 	fn map(&self, address: u32) -> u32 {
-		(match address {
+		let bank = match address {
 			0x8000..=0x9FFF => match self.register0.is_bit_set(6) {
 				true => self.program_bank_num * 2 - 2,
 				false => self.program_register0.load()
@@ -352,7 +352,10 @@ impl Mapper for MMC3Mapper {
 				false => self.program_bank_num * 2 - 2
 			},
 			_ => self.program_bank_num * 2 - 1
-		}) as u32 * 0x2000 + (address & 0x1FFF)
+		};
+		// I couldn't in the spec but it seems that
+		// we need to wrap 2k bank with 4k program_bank_num
+		((bank as u32) % ((self.program_bank_num as u32) * 2)) * 0x2000 + (address & 0x1FFF)
 	}
 
 	fn map_for_chr_rom(&self, address: u32) -> u32 {
@@ -378,8 +381,8 @@ impl Mapper for MMC3Mapper {
 				_ => self.character_register5.load()
 			}
 		};
-		// I couldn't find in the specification but it seems that
-		// we need to wrap with 8k character bank
+		// I couldn't in the spec but it seems that
+		// we need to wrap 0.4k bank with 4k character_bank_num
 		((bank as u32) % ((self.character_bank_num as u32) * 8)) * 0x400 + (address & 0x3FF)
 	}
 
