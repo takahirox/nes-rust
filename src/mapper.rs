@@ -289,6 +289,7 @@ impl Mapper for CNRomMapper {
 
 struct MMC3Mapper {
 	program_bank_num: u8,
+	character_bank_num: u8,
 	register0: Register<u8>,
 	register1: Register<u8>,
 	register2: Register<u8>,
@@ -314,6 +315,7 @@ impl MMC3Mapper {
 	fn new(header: &RomHeader) -> Self {
 		MMC3Mapper {
 			program_bank_num: header.prg_rom_bank_num(),
+			character_bank_num: header.chr_rom_bank_num(),
 			register0: Register::<u8>::new(),
 			register1: Register::<u8>::new(),
 			register2: Register::<u8>::new(),
@@ -354,7 +356,7 @@ impl Mapper for MMC3Mapper {
 	}
 
 	fn map_for_chr_rom(&self, address: u32) -> u32 {
-		(match self.register0.is_bit_set(7) {
+		let bank = match self.register0.is_bit_set(7) {
 			true => match address & 0x1FFF {
 				0x0000..=0x03FF => self.character_register2.load(),
 				0x0400..=0x07FF => self.character_register3.load(),
@@ -375,7 +377,10 @@ impl Mapper for MMC3Mapper {
 				0x1800..=0x1BFF => self.character_register4.load(),
 				_ => self.character_register5.load()
 			}
-		}) as u32 * 0x400 + (address & 0x3FF)
+		};
+		// I couldn't find in the specification but it seems that
+		// we need to wrap with 8k character bank
+		((bank as u32) % ((self.character_bank_num as u32) * 8)) * 0x400 + (address & 0x3FF)
 	}
 
 	fn store(&mut self, address: u32, value: u8) {

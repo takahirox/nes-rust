@@ -129,7 +129,7 @@ impl RomHeader {
 		self.load(4)
 	}
 
-	fn chr_rom_bank_num(&self) -> u8 {
+	pub fn chr_rom_bank_num(&self) -> u8 {
 		self.load(5)
 	}
 
