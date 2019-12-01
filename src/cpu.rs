@@ -260,7 +260,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x11 => Operation {
 			instruction_type: InstructionTypes::ORA,
-			cycle: 5, // @TODO: +1 if page crossed
+			cycle: 5, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0x12 => invalid
@@ -284,7 +284,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x19 => Operation {
 			instruction_type: InstructionTypes::ORA,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x1A => invalid
@@ -292,7 +292,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x1C => invalid
 		0x1D => Operation {
 			instruction_type: InstructionTypes::ORA,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x1E => Operation {
@@ -368,7 +368,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x31 => Operation {
 			instruction_type: InstructionTypes::AND,
-			cycle: 5, // @TODO: +1 if page crossed
+			cycle: 5, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0x32 => invalid
@@ -392,7 +392,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x39 => Operation {
 			instruction_type: InstructionTypes::AND,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x3A => invalid
@@ -400,7 +400,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x3C => invalid
 		0x3D => Operation {
 			instruction_type: InstructionTypes::AND,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x3E => Operation {
@@ -472,7 +472,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x51 => Operation {
 			instruction_type: InstructionTypes::EOR,
-			cycle: 5, // @TODO: +1 if page crossed
+			cycle: 5, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0x52 => invalid
@@ -496,7 +496,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x59 => Operation {
 			instruction_type: InstructionTypes::EOR,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x5A => invalid
@@ -504,7 +504,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x5C => invalid
 		0x5D => Operation {
 			instruction_type: InstructionTypes::EOR,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x5E => Operation {
@@ -600,7 +600,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0x79 => Operation {
 			instruction_type: InstructionTypes::ADC,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0x7A => invalid
@@ -608,7 +608,7 @@ fn operation(opc: u8) -> Operation {
 		// 0x7C => invalid
 		0x7D => Operation {
 			instruction_type: InstructionTypes::ADC,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0x7E => Operation {
@@ -792,7 +792,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xB1 => Operation {
 			instruction_type: InstructionTypes::LDA,
-			cycle: 5, // @TODO: +1 if page crossed
+			cycle: 5, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0xB2 => invalid
@@ -820,7 +820,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xB9 => Operation {
 			instruction_type: InstructionTypes::LDA,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		0xBA => Operation {
@@ -831,17 +831,17 @@ fn operation(opc: u8) -> Operation {
 		// 0xBB => invalid
 		0xBC => Operation {
 			instruction_type: InstructionTypes::LDY,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xBD => Operation {
 			instruction_type: InstructionTypes::LDA,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xBE => Operation {
 			instruction_type: InstructionTypes::LDX,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0xBF => invalid
@@ -912,7 +912,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xD1 => Operation {
 			instruction_type: InstructionTypes::CMP,
-			cycle: 5, // @TODO: +1 if page crossed
+			cycle: 5, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0xD2 => invalid
@@ -936,7 +936,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xD9 => Operation {
 			instruction_type: InstructionTypes::CMP,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0xDA => invalid
@@ -944,7 +944,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xDC => invalid
 		0xDD => Operation {
 			instruction_type: InstructionTypes::CMP,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xDE => Operation {
@@ -1020,7 +1020,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xF1 => Operation {
 			instruction_type: InstructionTypes::SBC,
-			cycle: 5, // @TODO: +1 if page crossed
+			cycle: 5, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedIndirectY
 		},
 		// 0xF2 => invalid
@@ -1044,7 +1044,7 @@ fn operation(opc: u8) -> Operation {
 		},
 		0xF9 => Operation {
 			instruction_type: InstructionTypes::SBC,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteY
 		},
 		// 0xFA => invalid
@@ -1052,7 +1052,7 @@ fn operation(opc: u8) -> Operation {
 		// 0xFC => invalid
 		0xFD => Operation {
 			instruction_type: InstructionTypes::SBC,
-			cycle: 4, // @TODO: +1 if page crossed
+			cycle: 4, // +1 if page crossed
 			addressing_mode: AddressingModes::IndexedAbsoluteX
 		},
 		0xFE => Operation {
@@ -1715,7 +1715,7 @@ impl Cpu {
 
 	fn load_2bytes(&mut self, address: u16) -> u16 {
 		let byte_low = self.load(address) as u16;
-		let byte_high = self.load(address + 1) as u16;
+		let byte_high = self.load(address.wrapping_add(1)) as u16;
 		(byte_high << 8) | byte_low
 	}
 
@@ -1725,7 +1725,7 @@ impl Cpu {
 
 	fn load_2bytes_in_page(&mut self, address: u16) -> u16 {
 		let addr1 = address;
-		let addr2 = (address & 0xff00) | ((address + 1) & 0xff);
+		let addr2 = (address & 0xff00) | ((address.wrapping_add(1)) & 0xff);
 		let byte_low = self.load(addr1) as u16;
 		let byte_high = self.load(addr2) as u16;
 		(byte_high << 8) | byte_low
@@ -1898,11 +1898,29 @@ impl Cpu {
 			AddressingModes::Absolute | AddressingModes::IndexedAbsoluteX | AddressingModes::IndexedAbsoluteY => {
 				let address = self.load_2bytes(self.pc.load());
 				self.pc.increment_by_2();
-				address.wrapping_add(match op.addressing_mode {
+				let effective_address = address.wrapping_add(match op.addressing_mode {
 					AddressingModes::IndexedAbsoluteX => self.x.load(),
 					AddressingModes::IndexedAbsoluteY => self.y.load(),
 					_ => 0
-				} as u16)
+				} as u16);
+				match op.instruction_type {
+					InstructionTypes::ADC |
+					InstructionTypes::AND |
+					InstructionTypes::CMP |
+					InstructionTypes::EOR |
+					InstructionTypes::LDA |
+					InstructionTypes::LDY |
+					InstructionTypes::LDX |
+					InstructionTypes::ORA |
+					InstructionTypes::SBC => {
+						// stall_cycles + 1 if page is crossed
+						if (address & 0xff00) != (effective_address & 0xff00) {
+							self.stall_cycles += 1;
+						}
+					},
+					_ => {}
+				};
+				effective_address
 			},
 			AddressingModes::ZeroPage | AddressingModes::IndexedZeroPageX | AddressingModes::IndexedZeroPageY => {
 				let address = self.pc.load();
@@ -1930,7 +1948,23 @@ impl Cpu {
 				let address = self.pc.load();
 				let tmp = self.load(address);
 				self.pc.increment();
-				self.load_2bytes_from_zeropage(tmp as u16).wrapping_add(self.y.load() as u16)
+				let address2 = self.load_2bytes_from_zeropage(tmp as u16);
+				let effective_address = address2.wrapping_add(self.y.load() as u16);
+				match op.instruction_type {
+					InstructionTypes::AND |
+					InstructionTypes::CMP |
+					InstructionTypes::EOR |
+					InstructionTypes::LDA |
+					InstructionTypes::ORA |
+					InstructionTypes::SBC => {
+						// stall_cycles + 1 if page is crossed
+						if (address2 & 0xff00) != (effective_address & 0xff00) {
+							self.stall_cycles += 1;
+						}
+					},
+					_ => {}
+				};
+				effective_address
 			},
 			_ => {
 				// @TODO: Throw?
