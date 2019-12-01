@@ -20,6 +20,9 @@ pub struct Ppu {
 	// 262 scan lines per frame. 0-261
 	scanline: u16,
 
+	// manage a case where vblank doesn't set due to 0x2002 read
+	suppress_vblank: bool,
+
 	// -- For background pixels
 
 	//
@@ -202,6 +205,7 @@ impl Ppu {
 			frame: 0,
 			cycle: 0,
 			scanline: 0,
+			suppress_vblank: false,
 			fine_x_scroll: 0,
 			current_vram_address: 0,
 			temporal_vram_address: 0,
@@ -290,7 +294,24 @@ impl Ppu {
 				// unused 4 lsb bits don't override data bus.
 				self.data_bus = (value & 0xE0) | (self.data_bus & 0x1F);
 
-				value
+				// reading 0x2002 at cycle=0 and scanline=241
+				// won't set vblank flag (7-bit) or fire NMI.
+				// reading 0x2002 at cycle=1or2 and scanline=241
+				// returns the data as vblank flag is set,
+				// clears the flag, and won't fire NMI
+
+				// Note: update_flags() which can set vblank is called
+				// after this method in the same cycle, so set supress_vblank true
+				// even at cycle=1 not only cycle=0
+
+				if self.scanline == 241 && (self.cycle == 0 || self.cycle == 1) {
+					self.suppress_vblank = true;
+				}
+
+				value | match self.scanline == 241 && (self.cycle == 1 || self.cycle == 2) {
+					true => 0x80,
+					false => 0x00
+				}
 			},
 			// oamdata load
 			0x2004 => {
@@ -726,10 +747,10 @@ impl Ppu {
 		if self.cycle == 1 {
 			if self.scanline == 241 {
 				// set vblank and occur NMI at cycle 1 in scanline 241
-				self.ppustatus.set_vblank();
-				if self.ppuctrl.is_nmi_enabled() {
-					self.nmi_interrupted = true;
+				if !self.suppress_vblank {
+					self.ppustatus.set_vblank();
 				}
+				self.suppress_vblank = false;
 				// Pixels for this frame should be ready so update the display
 				self.display.update_screen();
 			} else if self.scanline == 261 {
@@ -738,6 +759,17 @@ impl Ppu {
 				self.ppustatus.clear_vblank();
 				self.ppustatus.clear_zero_hit();
 				self.ppustatus.clear_overflow();
+			}
+		}
+
+		// According to http://wiki.nesdev.com/w/index.php/PPU_frame_timing#VBL_Flag_Timing
+		// reading 0x2002 at cycle=2 and scanline=241 can suppress NMI
+		// so firing NMI at cycle=3 not cycle=1 so far
+
+		if self.cycle == 3 && self.scanline == 241 {
+			if self.ppustatus.is_vblank() &&
+				self.ppuctrl.is_nmi_enabled() {
+				self.nmi_interrupted = true;
 			}
 		}
 
