@@ -14,6 +14,11 @@ nes-rust is a NES emulator written in Rust.
 
 ![Sgt. Helmet Training Day](./screenshots/Sgt_Helmet.png)
 
+# Features
+
+- Audio support
+- WebAssembly support
+
 # How to build and run
 
 ## Standalone
