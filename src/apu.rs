@@ -424,7 +424,7 @@ impl ApuPulse {
 	}
 
 	fn drive_length(&mut self) {
-		if !self.envelope_disabled() && self.length_counter > 0 {
+		if !self.envelope_loop_enabled() && self.length_counter > 0 {
 			self.length_counter -= 1;
 		}
 	}
