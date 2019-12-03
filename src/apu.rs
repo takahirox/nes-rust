@@ -605,7 +605,6 @@ impl ApuTriangle {
 					self.length_counter = LENGTH_TABLE[self.length_counter_index() as usize];
 				}
 
-				self.timer_sequence = 0;
 				self.linear_reload_flag = true;
 			},
 			_ => {} // @TODO: Throw an error?
