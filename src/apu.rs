@@ -79,7 +79,7 @@ impl Apu {
 	}
 
 	// Expects being called at CPU clock rate
-	pub fn step(&mut self) {
+	pub fn step(&mut self, dmc_sample_data: u8) {
 		self.cycle += 1;
 
 		// Samping at sample rate timing
@@ -98,7 +98,7 @@ impl Apu {
 			self.pulse2.drive_timer();
 			self.noise.drive_timer();
 			// @TODO: Add note
-			if self.dmc.drive_timer() {
+			if self.dmc.drive_timer(dmc_sample_data) {
 				self.dmc_irq_active = true;
 			}
 		}
@@ -277,6 +277,17 @@ impl Apu {
 			},
 			_ => {}
 		};
+	}
+
+	// See cpu.step() for what the following two methods are for
+	// @TODO: A bit hacky. Simplify.
+
+	pub fn dmc_needs_cpu_memory_data(&self) -> bool {
+		(self.cycle % 2) == 1 && self.dmc.needs_cpu_memory_data()
+	}
+
+	pub fn dmc_sample_address(&self) -> u16 {
+		self.dmc.address_counter
 	}
 
 	fn sample(&mut self) {
@@ -887,7 +898,7 @@ struct ApuDmc {
 
 	delta_counter: u8,
 	address_counter: u16,
-	remaining_bytes_counter: u8,
+	remaining_bytes_counter: u16,
 
 	sample_buffer: u8,
 	sample_buffer_is_empty: bool,
@@ -934,15 +945,15 @@ impl ApuDmc {
 			},
 			0x4011 => {
 				self.register1.store(value);
-				self.start();
+				self.delta_counter = self.delta_counter();
 			},
 			0x4012 => {
 				self.register2.store(value);
-				self.start();
+				self.address_counter = ((self.sample_address() as u16) << 6) | 0xC000;
 			},
 			0x4013 => {
 				self.register3.store(value);
-				self.start();
+				self.remaining_bytes_counter = ((self.sample_length() as u16) << 4) | 1;
 			},
 			_ => {} // @TODO
 		}
@@ -965,11 +976,19 @@ impl ApuDmc {
 
 	fn start(&mut self) {
 		self.delta_counter = self.delta_counter();
-		self.address_counter = self.sample_address() as u16 * 0x40 + 0xC000;
-		self.remaining_bytes_counter = self.sample_length() * 0x10 + 1;
+		self.address_counter = ((self.sample_address() as u16) << 6) | 0xC000;
+		self.remaining_bytes_counter = ((self.sample_length() as u16) << 4) | 1;
 	}
 
-	fn drive_timer(&mut self) -> bool {
+	// See cpu.step() for what this method is for
+	// @TODO: Solution to remove this workaround
+	fn needs_cpu_memory_data(&self) -> bool {
+		self.timer_counter == 0 &&
+			self.remaining_bytes_counter > 0 &&
+			self.sample_buffer_is_empty
+	}
+
+	fn drive_timer(&mut self, sample_data: u8) -> bool {
 		let mut irq_active = false;
 		if self.timer_counter > 0 {
 			self.timer_counter -= 1;
@@ -979,8 +998,7 @@ impl ApuDmc {
 			// Memory reader
 
 			if self.remaining_bytes_counter > 0 && self.sample_buffer_is_empty {
-				// @TODO: Fix me
-				// self.sample_buffer = self.apu.cpu.load(self.address_counter++);
+				self.sample_buffer = sample_data;
 
 				// if address exceeds 0xFFFF, it is wrapped around to 0x8000.
 				self.address_counter = match self.address_counter {
@@ -990,26 +1008,19 @@ impl ApuDmc {
 
 				self.sample_buffer_is_empty = false;
 
-				self.remaining_bytes_counter -= 1;
-
 				// If the bytes remaining counter becomes zero
 				//   - the sample is restarted if the loop flag is set
 				//   - otherwise, the interrupt flag is set if IRQ enabled flag is set
 
+				self.remaining_bytes_counter -= 1;
+
 				if self.remaining_bytes_counter == 0 {
 					if self.is_loop() {
 						self.start();
-					} else {
-						if self.irq_enabled() {
-							irq_active = true;
-						}
+					} else if self.irq_enabled() {
+						irq_active = true;
 					}
 				}
-
-				// The CPU is stalled for up to 4 CPU cycles
-
-				// @TODO: Fix me
-				// self.apu.cpu.stallCycle += 4;
 			}
 
 			// Output unit
@@ -1038,8 +1049,9 @@ impl ApuDmc {
 				}
 			}
 
-			self.shift_register = self.shift_register >> 1;
+			// The bits-remaining counter is updated whenever the timer outputs a clock
 			self.remaining_bits_counter -= 1;
+			self.shift_register = self.shift_register >> 1;
 		}
 
 		irq_active

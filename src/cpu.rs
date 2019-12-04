@@ -1152,9 +1152,20 @@ impl Cpu {
 		for _i in 0..stall_cycles * 3 {
 			self.ppu.step();
 		}
-		// @TODO: Fix APU clock timing
 		for _i in 0..stall_cycles {
-			self.apu.step();
+			// No reference to CPU from APU so detecting if APU DMC needs
+			// CPU memory data, loading data, and sending to APU if needed
+			// @TODO: Simplify
+			let dmc_sample_data = match self.apu.dmc_needs_cpu_memory_data() {
+				true => {
+					// The CPU is stalled for up to 4 CPU cycles
+					// @TODO: Fix me
+					self.stall_cycles += 4;
+					self.load(self.apu.dmc_sample_address())
+				}
+				false => 0
+			};
+			self.apu.step(dmc_sample_data);
 		}
 	}
 
