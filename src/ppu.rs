@@ -353,9 +353,12 @@ impl Ppu {
 			0x2000 => {
 				// Ignore the write to this register
 				// for about 30k cycles after power/reset.
-				if self.frame == 0 && self.scanline <= 88 {
-					return;
-				}
+				// But I found some test roms writes to 0x2000
+				// right after power on so commenting out so far.
+
+				//if self.frame == 0 && self.scanline <= 88 {
+				//	return;
+				//}
 
 				let previousNmiEnabled = self.ppuctrl.is_nmi_enabled();
 				self.ppuctrl.store(value);
