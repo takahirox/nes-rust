@@ -3,9 +3,9 @@ use audio::BUFFER_CAPACITY;
 use sdl2::audio::{AudioDevice, AudioCallback, AudioSpecDesired};
 use sdl2::AudioSubsystem;
 
-static mut buffer_index: usize = 0;
-static mut buffer: [f32; BUFFER_CAPACITY] = [0.0; BUFFER_CAPACITY];
-static mut previous_value: f32 = 0.0;
+static mut BUFFER_INDEX: usize = 0;
+static mut BUFFER: [f32; BUFFER_CAPACITY] = [0.0; BUFFER_CAPACITY];
+static mut PREVIOUS_VALUE: f32 = 0.0;
 
 pub struct Sdl2Audio {
 	device: AudioDevice<NesAudioCallback>
@@ -23,21 +23,21 @@ impl AudioCallback for NesAudioCallback {
 		unsafe {
 			let mut index = 0;
 			for b in buf.iter_mut() {
-				*b = match index >= buffer_index {
-					true => previous_value,
-					false => buffer[index]
+				*b = match index >= BUFFER_INDEX {
+					true => PREVIOUS_VALUE,
+					false => BUFFER[index]
 				};
-				previous_value = *b;
+				PREVIOUS_VALUE = *b;
 				*b *= self.volume;
 				index += 1;
 			}
 			// @TODO: Optimize
 			index = 0;
-			for i in buf.len()..buffer_index {
-				buffer[index] = buffer[i];
+			for i in buf.len()..BUFFER_INDEX {
+				BUFFER[index] = BUFFER[i];
 				index += 1;
 			}
-			buffer_index = index;
+			BUFFER_INDEX = index;
 		}
 	}
 }
@@ -67,11 +67,11 @@ impl Audio for Sdl2Audio {
 	fn push(&mut self, value: f32) {
 		// @TODO: Don't use unsafe
 		unsafe {
-			if buffer_index >= BUFFER_CAPACITY {
+			if BUFFER_INDEX >= BUFFER_CAPACITY {
 				return;
 			}
-			buffer[buffer_index] = value;
-			buffer_index += 1;
+			BUFFER[BUFFER_INDEX] = value;
+			BUFFER_INDEX += 1;
 		}
 	}
 
