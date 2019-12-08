@@ -1,32 +1,32 @@
 use input::Input;
-use joypad;
+use button;
 use std::collections::VecDeque;
 
 pub struct WasmInput {
-	events: VecDeque<(joypad::Button, joypad::Event)>
+	events: VecDeque<(button::Button, button::Event)>
 }
 
 impl WasmInput {
 	pub fn new() -> Self {
 		WasmInput {
-			events: VecDeque::<(joypad::Button, joypad::Event)>::new()
+			events: VecDeque::<(button::Button, button::Event)>::new()
 		}
-	}
-
-	pub fn press(&mut self, button: joypad::Button) {
-		self.events.push_back((button, joypad::Event::Press));
-	}
-
-	pub fn release(&mut self, button: joypad::Button) {
-		self.events.push_back((button, joypad::Event::Release));
 	}
 }
 
 impl Input for WasmInput {
-	fn get_input(&mut self) -> Option<(joypad::Button, joypad::Event)> {
+	fn get_input(&mut self) -> Option<(button::Button, button::Event)> {
 		match self.events.len() > 0 {
 			true => self.events.pop_front(),
 			false => None
 		}
+	}
+
+	fn press(&mut self, button: button::Button) {
+		self.events.push_back((button, button::Event::Press));
+	}
+
+	fn release(&mut self, button: button::Button) {
+		self.events.push_back((button, button::Event::Release));
 	}
 }

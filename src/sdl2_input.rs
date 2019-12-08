@@ -2,18 +2,27 @@ use input::Input;
 use sdl2::EventPump;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use joypad;
+use button;
 
-fn keycode_to_joypad_button(key: Keycode) -> Option<joypad::Button> {
+// @TODO: Be Configurable
+fn keycode_to_button(key: Keycode) -> Option<button::Button> {
 	match key {
-		Keycode::A => Some(joypad::Button::A),
-		Keycode::B => Some(joypad::Button::B),
-		Keycode::Space => Some(joypad::Button::Start),
-		Keycode::S => Some(joypad::Button::Select),
-		Keycode::Up => Some(joypad::Button::Up),
-		Keycode::Down => Some(joypad::Button::Down),
-		Keycode::Left => Some(joypad::Button::Left),
-		Keycode::Right => Some(joypad::Button::Right),
+		// joypad1
+		Keycode::Space => Some(button::Button::Start),
+		Keycode::S => Some(button::Button::Select),
+		Keycode::A => Some(button::Button::Joypad1_A),
+		Keycode::B => Some(button::Button::Joypad1_B),
+		Keycode::Up => Some(button::Button::Joypad1_Up),
+		Keycode::Down => Some(button::Button::Joypad1_Down),
+		Keycode::Left => Some(button::Button::Joypad1_Left),
+		Keycode::Right => Some(button::Button::Joypad1_Right),
+		// joypad2
+		Keycode::X => Some(button::Button::Joypad2_A),
+		Keycode::Z => Some(button::Button::Joypad2_B),
+		Keycode::Num8 => Some(button::Button::Joypad2_Up),
+		Keycode::Num2 => Some(button::Button::Joypad2_Down),
+		Keycode::Num4 => Some(button::Button::Joypad2_Left),
+		Keycode::Num6 => Some(button::Button::Joypad2_Right),
 		_ => None
 	}
 }
@@ -31,23 +40,23 @@ impl Sdl2Input {
 }
 
 impl Input for Sdl2Input {
-	fn get_input(&mut self) -> Option<(joypad::Button, joypad::Event)> {
+	fn get_input(&mut self) -> Option<(button::Button, button::Event)> {
 		match self.event_pump.poll_event() {
 			Some(ev) => {
 				match ev {
 					sdl2::event::Event::KeyDown {
 						keycode: Some(key), ..
 					} => {
-						match keycode_to_joypad_button(key) {
-							Some(button) => Some((button, joypad::Event::Press)),
+						match keycode_to_button(key) {
+							Some(button) => Some((button, button::Event::Press)),
 							None => self.get_input()
 						}
 					},
 					sdl2::event::Event::KeyUp {
 						keycode: Some(key), ..
 					} => {
-						match keycode_to_joypad_button(key) {
-							Some(button) => Some((button, joypad::Event::Release)),
+						match keycode_to_button(key) {
+							Some(button) => Some((button, button::Event::Release)),
 							None => self.get_input()
 						}
 					},
@@ -56,5 +65,11 @@ impl Input for Sdl2Input {
 			},
 			None => None
 		}
+	}
+
+	fn press(&mut self, button: button::Button) {
+	}
+
+	fn release(&mut self, button: button::Button) {
 	}
 }

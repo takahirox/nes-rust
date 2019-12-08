@@ -111,34 +111,45 @@
 
         // joypad event listener setup
 
+	// @TODO: Mapping should be configurable
         const getButton = keyCode => {
           switch (keyCode) {
             case 32: // space
               return Button.Start;
             case 37: // Left
-              return Button.Left;
+              return Button.Joypad1_Left;
             case 38: // Up
-              return Button.Up;
+              return Button.Joypad1_Up;
             case 39: // Right
-              return Button.Right;
+              return Button.Joypad1_Right;
             case 40: // Down
-              return Button.Down;
+              return Button.Joypad1_Down;
+            case 50: // 2
+              return Button.Joypad2_Down;
+            case 52: // 4
+              return Button.Joypad2_Left;
+            case 54: // 6
+              return Button.Joypad2_Right;
+            case 56: // 8
+              return Button.Joypad2_Up;
             case 65: // A
-              return Button.A;
+              return Button.Joypad1_A;
             case 66: // B
-              return Button.B;
+              return Button.Joypad1_B;
+            case 82: // R
+              return Button.Reset;
             case 83: // S
               return Button.Select;
+            case 88: // X
+              return Button.Joypad2_A;
+            case 90: // Z
+              return Button.Joypad2_B;
             default:
               return null; 
           }
         };
 
         window.addEventListener('keydown', event => {
-          if (event.keyCode === 82) { // R
-            nes.reset();
-            return;
-          }
           const button = getButton(event.keyCode);
           if (button === null) {
             return;
@@ -241,14 +252,58 @@
       <span id="fpsSpan">--.--</span> fps
     </div>
     <div>
-      <ul>
-        <li>Cursor - Cursor</li>
-        <li>A - A</li>
-        <li>B - B</li>
-        <li>Space - Start</li>
-        <li>S - Select</li>
-        <li>R - Reset</li>
-      </ul>
+      <table>
+        <tr>
+          <th></th>
+          <th>Player 1</th>
+          <th>Player 2</th>
+        </tr>
+        <tr>
+          <td>Down</td>
+          <td>Down</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>Left</td>
+          <td>Left</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>Right</td>
+          <td>Right</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>Up</td>
+          <td>Up</td>
+          <td>8</td>
+        </tr>
+        <tr>
+          <td>A</td>
+          <td>A</td>
+          <td>X</td>
+        </tr>
+        <tr>
+          <td>B</td>
+          <td>B</td>
+          <td>Z</td>
+        </tr>
+        <tr>
+          <td>Start</td>
+          <td>Space</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Select</td>
+          <td>S</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Reset</td>
+          <td>R</td>
+          <td>-</td>
+        </tr>
+      </table>
     </div>
     <div>
       <p>NES Roms Copyright</p>

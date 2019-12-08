@@ -3,12 +3,36 @@ use memory::Memory;
 use rom::Rom;
 use ppu::Ppu;
 use apu::Apu;
+use button;
 use joypad;
 use joypad::Joypad;
+use input::Input;
+use display::Display;
+use audio::Audio;
 use display::PIXELS_CAPACITY;
 use audio::BUFFER_CAPACITY;
 use std::cell::RefCell;
 use std::rc::Rc;
+
+fn to_joypad_button(button: button::Button) -> joypad::Button {
+	match button {
+		button::Button::Joypad1_A |
+		button::Button::Joypad2_A => joypad::Button::A,
+		button::Button::Joypad1_B |
+		button::Button::Joypad2_B => joypad::Button::B,
+		button::Button::Joypad1_Up |
+		button::Button::Joypad2_Up => joypad::Button::Up,
+		button::Button::Joypad1_Down |
+		button::Button::Joypad2_Down => joypad::Button::Down,
+		button::Button::Joypad1_Left |
+		button::Button::Joypad2_Left => joypad::Button::Left,
+		button::Button::Joypad1_Right |
+		button::Button::Joypad2_Right => joypad::Button::Right,
+		button::Button::Start => joypad::Button::Start,
+		button::Button::Select => joypad::Button::Select,
+		_ => joypad::Button::A // dummy @TODO: Throw an error?
+	}
+}
 
 /**
  * Ricoh 6502
@@ -29,10 +53,13 @@ pub struct Cpu {
 	// manage additional stall cycles eg. DMA or branch success
 	stall_cycles: u16,
 
+	input: Box<Input>,
+
 	// other devices
 	ppu: Ppu,
 	apu: Apu,
 	joypad1: Joypad,
+	joypad2: Joypad,
 	rom: Option<Rc<RefCell<Rom>>>
 }
 
@@ -1070,7 +1097,7 @@ fn operation(opc: u8) -> Operation {
 }
 
 impl Cpu {
-	pub fn new(joypad: Joypad, ppu: Ppu, apu: Apu) -> Self {
+	pub fn new(input: Box<Input>, display: Box<Display>, audio: Box<Audio>) -> Self {
 		Cpu {
 			pc: Register::<u16>::new(),
 			sp: Register::<u8>::new(),
@@ -1080,9 +1107,11 @@ impl Cpu {
 			p: CpuStatusRegister::new(),
 			ram: Memory::new(vec![0; 64 * 1024]), // 64KB
 			stall_cycles: 0,
-			ppu: ppu,
-			apu: apu,
-			joypad1: joypad,
+			input: input,
+			ppu: Ppu::new(display),
+			apu: Apu::new(audio),
+			joypad1: Joypad::new(),
+			joypad2: Joypad::new(),
 			rom: None
 		}
 	}
@@ -1137,12 +1166,12 @@ impl Cpu {
 		self.apu.copy_sample_buffer(buffer);
 	}
 
-	pub fn press_button(&mut self, button: joypad::Button) {
-		self.joypad1.press_button(button);
+	pub fn press_button(&mut self, button: button::Button) {
+		self.input.press(button);
 	}
 
-	pub fn release_button(&mut self, button: joypad::Button) {
-		self.joypad1.release_button(button);
+	pub fn release_button(&mut self, button: button::Button) {
+		self.input.release(button);
 	}
 
 	//
@@ -1170,9 +1199,10 @@ impl Cpu {
 	}
 
 	pub fn step_frame(&mut self) {
+		// Input handling should be here? Or under nes.rs?
+		self.handle_inputs();
 		// @TODO: More precise frame update detection?
 		let ppu_frame = self.ppu.frame;
-		self.joypad1.handle_inputs();
 		while true {
 			self.step();
 			if ppu_frame != self.ppu.frame {
@@ -1180,6 +1210,37 @@ impl Cpu {
 			}
 		}
 		self.apu.resume_audio();
+	}
+
+	fn handle_inputs(&mut self) {
+		while let Some((button, event)) = self.input.get_input() {
+			match button {
+				button::Button::Poweroff => {
+					// @TODO: Implement
+				},
+				button::Button::Reset => {
+					self.reset();
+				},
+				button::Button::Select |
+				button::Button::Start |
+				button::Button::Joypad1_A |
+				button::Button::Joypad1_B |
+				button::Button::Joypad1_Up |
+				button::Button::Joypad1_Down |
+				button::Button::Joypad1_Left |
+				button::Button::Joypad1_Right => {
+					self.joypad1.handle_input(to_joypad_button(button), event);
+				},
+				button::Button::Joypad2_A |
+				button::Button::Joypad2_B |
+				button::Button::Joypad2_Up |
+				button::Button::Joypad2_Down |
+				button::Button::Joypad2_Left |
+				button::Button::Joypad2_Right => {
+					self.joypad2.handle_input(to_joypad_button(button), event);
+				}
+			}
+		}
 	}
 
 	fn step_internal(&mut self) -> u16 {
@@ -1702,6 +1763,10 @@ impl Cpu {
 			return self.joypad1.load_register();
 		}
 
+		if address == 0x4017 {
+			return self.joypad2.load_register();
+		}
+
 		if address >= 0x4017 && address < 0x4020 {
 			return self.apu.load_register(address);
 		}
@@ -1785,6 +1850,7 @@ impl Cpu {
 
 		if address == 0x4016 {
 			self.joypad1.store_register(value);
+			self.joypad2.store_register(value); // to clear the joypad2 state
 		}
 
 		if address >= 0x4017 && address < 0x4020 {

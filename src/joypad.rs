@@ -1,5 +1,5 @@
+use button;
 use register::Register;
-use input::Input;
 
 const BUTTON_NUM: u8 = 8;
 
@@ -12,11 +12,6 @@ pub enum Button {
 	Down,
 	Left,
 	Right
-}
-
-pub enum Event {
-	Press,
-	Release
 }
 
 fn button_index(button: Button) -> usize {
@@ -36,31 +31,23 @@ pub struct Joypad {
 	register: Register<u8>,
 	latch: u8,
 	current_button: u8,
-	buttons: [bool; BUTTON_NUM as usize],
-	input: Box<Input>
+	buttons: [bool; BUTTON_NUM as usize]
 }
 
 impl Joypad {
-	pub fn new(input: Box<Input>) -> Self {
+	pub fn new() -> Self {
 		Joypad {
 			register: Register::<u8>::new(),
 			latch: 0,
 			current_button: 0,
-			buttons: [false; BUTTON_NUM as usize],
-			input: input
+			buttons: [false; BUTTON_NUM as usize]
 		}
 	}
 
-	pub fn handle_inputs(&mut self) {
-		while let Some((button, event)) = self.input.get_input() {
-			self.handle_input(button, event);
-		}
-	}
-
-	fn handle_input(&mut self, button: Button, event: Event) {
+	pub fn handle_input(&mut self, button: Button, event: button::Event) {
 		match event {
-			Event::Press => self.press_button(button),
-			Event::Release => self.release_button(button)
+			button::Event::Press => self.press_button(button),
+			button::Event::Release => self.release_button(button)
 		};
 	}
 

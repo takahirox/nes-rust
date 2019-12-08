@@ -1,16 +1,13 @@
 use cpu::Cpu;
-use ppu::Ppu;
-use apu::Apu;
 use rom::Rom;
-use joypad;
-use joypad::Joypad;
-use std::cell::RefCell;
-use std::rc::Rc;
+use button;
 use input::Input;
 use display::Display;
 use display::PIXELS_CAPACITY;
 use audio::Audio;
 use audio::BUFFER_CAPACITY;
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::time::Duration;
 
 pub struct Nes {
@@ -21,9 +18,9 @@ impl Nes {
 	pub fn new(input: Box<Input>, display: Box<Display>, audio: Box<Audio>) -> Self {
 		Nes {
 			cpu: Cpu::new(
-				Joypad::new(input),
-				Ppu::new(display),
-				Apu::new(audio)
+				input,
+				display,
+				audio
 			)
 		}
 	}
@@ -71,11 +68,11 @@ impl Nes {
 		self.cpu.copy_sample_buffer(buffer);
 	}
 
-	pub fn press_button(&mut self, button: joypad::Button) {
+	pub fn press_button(&mut self, button: button::Button) {
 		self.cpu.press_button(button);
 	}
 
-	pub fn release_button(&mut self, button: joypad::Button) {
+	pub fn release_button(&mut self, button: button::Button) {
 		self.cpu.release_button(button);
 	}
 }
