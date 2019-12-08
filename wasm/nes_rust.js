@@ -27,7 +27,7 @@ function getStringFromWasm(ptr, len) {
 }
 /**
 */
-export const Button = Object.freeze({ A:0,B:1,Select:2,Start:3,Up:4,Down:5,Left:6,Right:7, });
+export const Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad1_A:4,Joypad1_B:5,Joypad1_Up:6,Joypad1_Down:7,Joypad1_Left:8,Joypad1_Right:9,Joypad2_A:10,Joypad2_B:11,Joypad2_Up:12,Joypad2_Down:13,Joypad2_Left:14,Joypad2_Right:15, });
 /**
 */
 export class WasmNes {

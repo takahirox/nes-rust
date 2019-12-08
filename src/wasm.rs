@@ -8,6 +8,7 @@ mod rom;
 mod cpu;
 mod ppu;
 mod apu;
+mod button;
 mod joypad;
 mod nes;
 mod display;
@@ -23,34 +24,51 @@ use display::PIXELS_CAPACITY;
 use audio::BUFFER_CAPACITY;
 use std::cell::RefCell;
 use std::rc::Rc;
+use input::Input;
 use wasm_audio::WasmAudio;
 use wasm_display::WasmDisplay;
 use wasm_input::WasmInput;
 
-// @TODO: Reuse joypad::Button instead of defining Button here
+// @TODO: Reuse button::Button instead of defining Button here
 
 #[wasm_bindgen]
 pub enum Button {
-	A,
-	B,
+	Poweroff,
+	Reset,
 	Select,
 	Start,
-	Up,
-	Down,
-	Left,
-	Right
+	Joypad1_A,
+	Joypad1_B,
+	Joypad1_Up,
+	Joypad1_Down,
+	Joypad1_Left,
+	Joypad1_Right,
+	Joypad2_A,
+	Joypad2_B,
+	Joypad2_Up,
+	Joypad2_Down,
+	Joypad2_Left,
+	Joypad2_Right
 }
 
-fn to_joypad_button(button: Button) -> joypad::Button {
+fn to_button_internal(button: Button) -> button::Button {
 	match button {
-		Button::A => joypad::Button::A,
-		Button::B => joypad::Button::B,
-		Button::Select => joypad::Button::Select,
-		Button::Start => joypad::Button::Start,
-		Button::Up => joypad::Button::Up,
-		Button::Down => joypad::Button::Down,
-		Button::Left => joypad::Button::Left,
-		Button::Right => joypad::Button::Right
+		Button::Poweroff => button::Button::Poweroff,
+		Button::Reset => button::Button::Reset,
+		Button::Select => button::Button::Select,
+		Button::Start => button::Button::Start,
+		Button::Joypad1_A => button::Button::Joypad1_A,
+		Button::Joypad1_B => button::Button::Joypad1_B,
+		Button::Joypad1_Up => button::Button::Joypad1_Up,
+		Button::Joypad1_Down => button::Button::Joypad1_Down,
+		Button::Joypad1_Left => button::Button::Joypad1_Left,
+		Button::Joypad1_Right => button::Button::Joypad1_Right,
+		Button::Joypad2_A => button::Button::Joypad2_A,
+		Button::Joypad2_B => button::Button::Joypad2_B,
+		Button::Joypad2_Up => button::Button::Joypad2_Up,
+		Button::Joypad2_Down => button::Button::Joypad2_Down,
+		Button::Joypad2_Left => button::Button::Joypad2_Left,
+		Button::Joypad2_Right => button::Button::Joypad2_Right
 	}
 }
 
@@ -107,10 +125,10 @@ impl WasmNes {
 	}
 
 	pub fn press_button(&mut self, button: Button) {
-		self.nes.press_button(to_joypad_button(button));
+		self.nes.press_button(to_button_internal(button));
 	}
 
 	pub fn release_button(&mut self, button: Button) {
-		self.nes.release_button(to_joypad_button(button));
+		self.nes.release_button(to_button_internal(button));
 	}
 }

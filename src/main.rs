@@ -5,6 +5,7 @@ mod rom;
 mod cpu;
 mod ppu;
 mod apu;
+mod button;
 mod joypad;
 mod input;
 mod display;
