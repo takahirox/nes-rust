@@ -46,12 +46,17 @@ export class WasmNes {
         wasm.__wbg_wasmnes_free(ptr);
     }
     /**
-    * @param {Uint8Array} contents
     * @returns {WasmNes}
     */
-    static new(contents) {
-        const ret = wasm.wasmnes_new(passArray8ToWasm(contents), WASM_VECTOR_LEN);
+    static new() {
+        const ret = wasm.wasmnes_new();
         return WasmNes.__wrap(ret);
+    }
+    /**
+    * @param {Uint8Array} contents
+    */
+    set_rom(contents) {
+        wasm.wasmnes_set_rom(this.ptr, passArray8ToWasm(contents), WASM_VECTOR_LEN);
     }
     /**
     */
