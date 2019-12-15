@@ -6,6 +6,10 @@ The *.nes files in this directory are made by other people. Follow their policie
 
 - nestest (nestest.nes)
 
+## [Damian Yerrick](https://wiki.nesdev.com/w/index.php/Projects#stuff_by_Damian_Yerrick)
+
+- GNOME vs. KDE (bingo.nes)
+
 ## [Sly Dog Studios](http://slydogstudios.org/)
 
 - Meteo Guard (mguard.nes)
