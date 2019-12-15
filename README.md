@@ -20,6 +20,7 @@ nes-rust is a NES emulator written in Rust.
 
 - Audio support
 - WebAssembly support
+- Remote multiplay support with WebRTC
 
 # How to build and run
 
