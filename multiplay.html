@@ -38,23 +38,32 @@
 
       const roomId = location.href.split('?').pop()
 
-      const remoteStreams = {};
-      const remoteStreamIds = {
-        audio: null,
-        video: null
-      };
       let webrtc = null;
       let nes = null;
-
-      const audioContext = AudioContext || webkitAudioContext;
-      let context = null;
-      let audioStream = null;
 
       let isHost = null;
       let userId = null;
       let hostId = null;
 
+      const padButtonIds = [
+        'pad_left',
+        'pad_up',
+        'pad_right',
+        'pad_down',
+        'pad_select',
+        'pad_start',
+        'pad_a',
+        'pad_b',
+        'pad_reset'
+      ];
+
       const join = () => {
+        const remoteStreams = {};
+        const remoteStreamIds = {
+          audio: null,
+          video: null
+        };
+
         webrtc = new WebRTCClient(
           new FirebaseSignalingServer({
             // replace with yours
@@ -89,14 +98,10 @@
             updateInfo('Joined the room. You are Host. Start game');
             console.log('You are Host.');
             document.getElementById('romDiv').hidden = false;
-            const canvas = document.getElementById('nesCanvas');
-            canvas.getContext('2d'); // necessary to capsture stream
-            webrtc.setVideoStream(canvas.captureStream(60));
-            context = new audioContext({sampleRate: 44100});
-            audioStream = context.createMediaStreamDestination();
-            webrtc.setAudioStream(audioStream.stream);
+            setupNes();
           } else {
             isHost = false;
+            setupJoypad2Event();
             updateInfo('Joined the room. You are Client');
             console.log('You are Client.');
             document.getElementById('nesCanvas').hidden = true;
@@ -190,218 +195,311 @@
           video.play();
         };
 
-        const getButton = keyCode => {
-          switch (keyCode) {
-            case 37: // Left
-              return Button.Joypad2_Left;
-            case 38: // Up
-              return Button.Joypad2_Up;
-            case 39: // Right
-              return Button.Joypad2_Right;
-            case 40: // Down
-              return Button.Joypad2_Down;
-            case 65: // A
-              return Button.Joypad2_A;
-            case 66: // B
-              return Button.Joypad2_B;
-            default:
-              return null; 
-          }
-        };
+        // @TODO: Configurable mapping
 
-        window.addEventListener('keydown', event => {
-          if (isHost) {
-            return;
-          }
-          const button = getButton(event.keyCode);
-          if (button === null) {
-            return;
-          }
-          webrtc.send(hostId, {action: 'button', button: button, event: 'press'});
-          event.preventDefault();
-        }, false);
-
-        window.addEventListener('keyup', event => {
-          if (isHost) {
-            return;
-          }
-          const button = getButton(event.keyCode);
-          if (button === null) {
-            return;
-          }
-          webrtc.send(hostId, {action: 'button', button: button, event: 'release'});
-          event.preventDefault();
-        }, false);
-      };
-
-      const setupAudio = (wasm, nes) => {
-        const bufferLength = 4096;
-        const scriptProcessor = context.createScriptProcessor(bufferLength, 0, 1);
-
-        const sampleBufferPtr = (nes.sample_buffer_ptr() / 4) | 0;
-        const wasmMemory = new Float32Array(wasm.memory.buffer);
-
-        scriptProcessor.onaudioprocess = e => {
-          nes.update_sample_buffer();
-          const data = e.outputBuffer.getChannelData(0);
-          for (let i = 0; i < bufferLength; i++) {
-            data[i] = wasmMemory[sampleBufferPtr + i] * 0.25;
-          }
-        };
-
-        scriptProcessor.connect(context.destination);
-        const sampleRate = context.sampleRate;
-        scriptProcessor.connect(audioStream);
-      };
-
-      const start = romArrayBuffer => {
-        // @TODO: Call init beforehand
-        init()
-          .then(wasm => run(wasm, new Uint8Array(romArrayBuffer)))
-          .catch(error => console.error(error));
-      };
-
-      const run = (wasm, romContentArray) => {
-        const width = 256;
-        const height = 240;
-        const canvas = document.getElementById('nesCanvas');
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.createImageData(width, height);
-        const pixels = new Uint8Array(imageData.data.buffer);
-        nes = WasmNes.new(romContentArray);
-        setupAudio(wasm, nes);
-        const pixelsPtr = nes.pixels_ptr();
-        nes.bootup();
-        const wasmMemory = new Uint8Array(wasm.memory.buffer);
-
-        // FPS counter
-
-	let totalElapsedTime = 0.0;
-        let previousTime = performance.now();
-        let frameCount = 0;
-        const fpsSpan = document.getElementById('fpsSpan');
-
-        const countFps = () => {
-          frameCount++;
-          const currentTime = performance.now();
-          const elapsedTime = currentTime - previousTime;
-          totalElapsedTime += elapsedTime;
-          previousTime = currentTime;
-          if ((frameCount % 60) === 0) {
-            fpsSpan.textContent = (1000.0 / (totalElapsedTime / 60)).toFixed(2);
-            totalElapsedTime = 0.0;
-            frameCount = 0;
-          }
-        }
-
-        // animation frame loop
-
-        const stepFrame = () => {
-          requestAnimationFrame(stepFrame);
-          countFps();
-          nes.step_frame();
-          nes.update_pixels();
-          for (let y = 0; y < 240; y++) {
-            for (let x = 0; x < 256; x++) {
-              const baseIndex = y * 256 + x;
-              pixels[baseIndex * 4] = wasmMemory[pixelsPtr + baseIndex * 3];
-              pixels[baseIndex * 4 + 1] = wasmMemory[pixelsPtr + baseIndex * 3 + 1];
-              pixels[baseIndex * 4 + 2] = wasmMemory[pixelsPtr + baseIndex * 3 + 2];
-              pixels[baseIndex * 4 + 3] = 255;
+        const setupJoypad2Event = () => {
+          const getButton = keyCode => {
+            switch (keyCode) {
+              case 37: // Left
+                return Button.Joypad2_Left;
+              case 38: // Up
+                return Button.Joypad2_Up;
+              case 39: // Right
+                return Button.Joypad2_Right;
+              case 40: // Down
+                return Button.Joypad2_Down;
+              case 65: // A
+                return Button.Joypad2_A;
+              case 66: // B
+                return Button.Joypad2_B;
+              default:
+                return null; 
             }
+          };
+
+          window.addEventListener('keydown', event => {
+            const button = getButton(event.keyCode);
+            if (button === null) {
+              return;
+            }
+            webrtc.send(hostId, {action: 'button', button: button, event: 'press'});
+            event.preventDefault();
+          }, false);
+
+          window.addEventListener('keyup', event => {
+            const button = getButton(event.keyCode);
+            if (button === null) {
+              return;
+            }
+            webrtc.send(hostId, {action: 'button', button: button, event: 'release'});
+            event.preventDefault();
+          }, false);
+
+          const idToButton2 = id => {
+            switch (id) {
+              case 'pad_left':
+                return Button.Joypad2_Left;
+              case 'pad_up':
+                return Button.Joypad2_Up;
+              case 'pad_right':
+                return Button.Joypad2_Right;
+              case 'pad_down':
+                return Button.Joypad2_Down;
+              case 'pad_a':
+                return Button.Joypad2_A;
+              case 'pad_b':
+                return Button.Joypad2_B;
+              default:
+                return null; 
+            }
+          };
+
+          const onPadPress = event => {
+            if (!hostId) {
+              return;
+            }
+            const button = idToButton2(event.target.id);
+            if (button === null) {
+              return;
+            }
+            webrtc.send(hostId, {action: 'button', button: button, event: 'press'});
+          };
+
+          const onPadRelease = event => {
+            if (!hostId) {
+              return;
+            }
+            const button = idToButton2(event.target.id);
+            if (button === null) {
+              return;
+            }
+            webrtc.send(hostId, {action: 'button', button: button, event: 'release'});
+          };
+
+          for (const id of padButtonIds) {
+            document.getElementById(id).addEventListener('mousedown', onPadPress, false);
+            document.getElementById(id).addEventListener('click', onPadRelease, false);
           }
-          ctx.putImageData(imageData, 0, 0);
         };
-
-        // joypad event listener setup
-
-	// @TODO: Mapping should be configurable
-        const getButton = keyCode => {
-          switch (keyCode) {
-            case 32: // space
-              return Button.Start;
-            case 37: // Left
-              return Button.Joypad1_Left;
-            case 38: // Up
-              return Button.Joypad1_Up;
-            case 39: // Right
-              return Button.Joypad1_Right;
-            case 40: // Down
-              return Button.Joypad1_Down;
-            case 65: // A
-              return Button.Joypad1_A;
-            case 66: // B
-              return Button.Joypad1_B;
-            case 82: // R
-              return Button.Reset;
-            case 83: // S
-              return Button.Select;
-            default:
-              return null; 
-          }
-        };
-
-        window.addEventListener('keydown', event => {
-          const button = getButton(event.keyCode);
-          if (button === null) {
-            return;
-          }
-          nes.press_button(button);
-          event.preventDefault();
-        }, false);
-
-        window.addEventListener('keyup', event => {
-          const button = getButton(event.keyCode);
-          if (button === null) {
-            return;
-          }
-          nes.release_button(button);
-          event.preventDefault();
-        }, false);
-
-        stepFrame();
       };
 
-      // rom load
+      const setupNes = () => {
+        init().then(wasm => {
+          nes = WasmNes.new();
 
-      let romSelected = false;
+          const audioContext = AudioContext || webkitAudioContext;
+          const context = new audioContext({sampleRate: 44100});
+          const bufferLength = 4096;
+          const scriptProcessor = context.createScriptProcessor(bufferLength, 0, 1);
+          const sampleBufferPtr = (nes.sample_buffer_ptr() / 4) | 0;
+          const wasmMemory = new Float32Array(wasm.memory.buffer);
 
-      document.getElementById('romSelect').addEventListener('change', event => {
-        if (romSelected) return;
-        romSelected = true;
-        const select = event.target;
-        const option = select.selectedOptions[0];
-        const filename = option.value;
-        if (!filename) {
-          return;
-        }
-        select.disabled = true; // @TODO: Reset Nes instead
-        fetch('./roms/' + filename)
-          .then(result => result.arrayBuffer())
-          .then(start)
-          .catch(error => console.error(error));
-      }, false);
+          scriptProcessor.onaudioprocess = e => {
+            nes.update_sample_buffer();
+            const data = e.outputBuffer.getChannelData(0);
+            for (let i = 0; i < bufferLength; i++) {
+              data[i] = wasmMemory[sampleBufferPtr + i] * 0.25;
+            }
+          };
 
-      window.addEventListener('dragover', event => {
-        event.preventDefault();
-      }, false);
+          scriptProcessor.connect(context.destination);
 
-      window.addEventListener('drop', event => {
-        event.preventDefault();
-        if (romSelected || !isHost) {
-          return;
-        }
-        romSelected = true;
-        document.getElementById('romSelect').disabled = true; // @TODO: Reset Nes instead
-        const reader = new FileReader();
-        reader.onload = e => {
-          start(e.target.result);
-        };
-        reader.onerror = e => {
-          console.error(e);
-        };
-        reader.readAsArrayBuffer(event.dataTransfer.files[0]);
-      }, false);
+          const streamDestination = context.createMediaStreamDestination();
+          scriptProcessor.connect(streamDestination);
+
+          const canvas = document.getElementById('nesCanvas');
+          canvas.getContext('2d'); // necessary to capsture stream
+          webrtc.setVideoStream(canvas.captureStream(60));
+          webrtc.setAudioStream(streamDestination.stream);
+
+          const run = romArrayBuffer => {
+            // FPS counter
+
+            let totalElapsedTime = 0.0;
+            let previousTime = performance.now();
+            let frameCount = 0;
+            const fpsSpan = document.getElementById('fpsSpan');
+
+            const countFps = () => {
+              frameCount++;
+              const currentTime = performance.now();
+              const elapsedTime = currentTime - previousTime;
+              totalElapsedTime += elapsedTime;
+              previousTime = currentTime;
+              if ((frameCount % 60) === 0) {
+                fpsSpan.textContent = (1000.0 / (totalElapsedTime / 60)).toFixed(2);
+                totalElapsedTime = 0.0;
+                frameCount = 0;
+              }
+            }
+
+            // animation frame loop
+
+            const width = 256;
+            const height = 240;
+            const canvas = document.getElementById('nesCanvas');
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(width, height);
+            const pixels = new Uint8Array(imageData.data.buffer);
+            const pixelsPtr = nes.pixels_ptr();
+            const wasmMemory = new Uint8Array(wasm.memory.buffer);
+
+            const stepFrame = () => {
+              requestAnimationFrame(stepFrame);
+              countFps();
+              nes.step_frame();
+              nes.update_pixels();
+              for (let y = 0; y < 240; y++) {
+                for (let x = 0; x < 256; x++) {
+                  const baseIndex = y * 256 + x;
+                  pixels[baseIndex * 4] = wasmMemory[pixelsPtr + baseIndex * 3];
+                  pixels[baseIndex * 4 + 1] = wasmMemory[pixelsPtr + baseIndex * 3 + 1];
+                  pixels[baseIndex * 4 + 2] = wasmMemory[pixelsPtr + baseIndex * 3 + 2];
+                  pixels[baseIndex * 4 + 3] = 255;
+                }
+              }
+              ctx.putImageData(imageData, 0, 0);
+            };
+
+            // Joypad1 Event
+            // @TODO: Configurable button mapping
+
+            const getButton = keyCode => {
+              switch (keyCode) {
+                case 32: // space
+                  return Button.Start;
+                case 37: // Left
+                  return Button.Joypad1_Left;
+                case 38: // Up
+                  return Button.Joypad1_Up;
+                case 39: // Right
+                  return Button.Joypad1_Right;
+                case 40: // Down
+                  return Button.Joypad1_Down;
+                case 65: // A
+                  return Button.Joypad1_A;
+                case 66: // B
+                  return Button.Joypad1_B;
+                case 82: // R
+                  return Button.Reset;
+                case 83: // S
+                  return Button.Select;
+                default:
+                  return null; 
+              }
+            };
+
+            window.addEventListener('keydown', event => {
+              const button = getButton(event.keyCode);
+              if (button === null) {
+                return;
+              }
+              nes.press_button(button);
+              event.preventDefault();
+            }, false);
+
+            window.addEventListener('keyup', event => {
+              const button = getButton(event.keyCode);
+              if (button === null) {
+                return;
+              }
+              nes.release_button(button);
+              event.preventDefault();
+            }, false);
+
+            const idToButton1 = id => {
+              switch (id) {
+                case 'pad_start':
+                  return Button.Start;
+                case 'pad_left':
+                  return Button.Joypad1_Left;
+                case 'pad_up':
+                  return Button.Joypad1_Up;
+                case 'pad_right':
+                  return Button.Joypad1_Right;
+                case 'pad_down':
+                  return Button.Joypad1_Down;
+                case 'pad_a':
+                  return Button.Joypad1_A;
+                case 'pad_b':
+                  return Button.Joypad1_B;
+                case 'pad_reset':
+                  return Button.Reset;
+                case 'pad_select':
+                  return Button.Select;
+                default:
+                  return null; 
+              }
+            };
+
+            const onPadPress = event => {
+              const button = idToButton1(event.target.id);
+              if (button === null) {
+                return;
+              }
+              nes.press_button(button);
+            };
+
+            const onPadRelease = event => {
+              const button = idToButton1(event.target.id);
+              if (button === null) {
+                return;
+              }
+              nes.release_button(button);
+            };
+
+            for (const id of padButtonIds) {
+              document.getElementById(id).addEventListener('mousedown', onPadPress, false);
+              document.getElementById(id).addEventListener('click', onPadRelease, false);
+            }
+
+            nes.set_rom(new Uint8Array(romArrayBuffer));
+            nes.bootup();
+            stepFrame();
+          };
+
+          // rom load and run
+
+          let romSelected = false;
+
+          document.getElementById('romSelect').addEventListener('change', event => {
+            if (romSelected) return;
+            romSelected = true;
+            const select = event.target;
+            const option = select.selectedOptions[0];
+            const filename = option.value;
+            if (!filename) {
+              return;
+            }
+            select.disabled = true; // @TODO: Enable to load another file
+            fetch('./roms/' + filename)
+              .then(result => result.arrayBuffer())
+              .then(run)
+              .catch(error => console.error(error));
+          }, false);
+
+          window.addEventListener('dragover', event => {
+            event.preventDefault();
+          }, false);
+
+          window.addEventListener('drop', event => {
+            event.preventDefault();
+            if (romSelected || !isHost) {
+              return;
+            }
+            romSelected = true;
+            document.getElementById('romSelect').disabled = true; // @TODO: Reset Nes instead
+            const reader = new FileReader();
+            reader.onload = e => {
+              run(e.target.result);
+            };
+            reader.onerror = e => {
+              console.error(e);
+            };
+            reader.readAsArrayBuffer(event.dataTransfer.files[0]);
+          }, false);
+        });
+      };
 
       // screen size
 
@@ -425,7 +523,7 @@
         }
       }, false);
 
-      //
+      // player list management
 
       const addPlayerToList = id => {
         const li = document.createElement('li');
@@ -453,102 +551,6 @@
         event.target.disabled = true;
         join();
       }, false);
-
-      const idToButton1 = id => {
-        switch (id) {
-          case 'pad_start':
-            return Button.Start;
-          case 'pad_left':
-            return Button.Joypad1_Left;
-          case 'pad_up':
-            return Button.Joypad1_Up;
-          case 'pad_right':
-            return Button.Joypad1_Right;
-          case 'pad_down':
-            return Button.Joypad1_Down;
-          case 'pad_a':
-            return Button.Joypad1_A;
-          case 'pad_b':
-            return Button.Joypad1_B;
-          case 'pad_reset':
-            return Button.Reset;
-          case 'pad_select':
-            return Button.Select;
-          default:
-            return null; 
-        }
-      };
-
-      const idToButton2 = id => {
-        switch (id) {
-          case 'pad_left':
-            return Button.Joypad2_Left;
-          case 'pad_up':
-            return Button.Joypad2_Up;
-          case 'pad_right':
-            return Button.Joypad2_Right;
-          case 'pad_down':
-            return Button.Joypad2_Down;
-          case 'pad_a':
-            return Button.Joypad2_A;
-          case 'pad_b':
-            return Button.Joypad2_B;
-          default:
-            return null; 
-        }
-      };
-
-      const onPadPress = event => {
-        if (isHost && nes) {
-          const button = idToButton1(event.target.id);
-          if (button === null) {
-            return;
-          }
-          nes.press_button(button);
-        } else if (webrtc && hostId) {
-          const button = idToButton2(event.target.id);
-          if (button === null) {
-            return;
-          }
-          webrtc.send(hostId, {action: 'button', button: button, event: 'press'});
-        }
-      };
-
-      const onPadRelease = event => {
-        if (isHost && nes) {
-          const button = idToButton1(event.target.id);
-          if (button === null) {
-            return;
-          }
-          nes.release_button(button);
-        } else if (webrtc && hostId) {
-          const button = idToButton2(event.target.id);
-          if (button === null) {
-            return;
-          }
-          webrtc.send(hostId, {action: 'button', button: button, event: 'release'});
-        }
-      };
-
-      document.getElementById('pad_left').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_up').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_right').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_down').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_select').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_start').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_a').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_b').addEventListener('mousedown', onPadPress, false);
-      document.getElementById('pad_reset').addEventListener('mousedown', onPadPress, false);
-
-      document.getElementById('pad_left').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_up').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_right').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_down').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_select').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_start').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_a').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_b').addEventListener('click', onPadRelease, false);
-      document.getElementById('pad_reset').addEventListener('click', onPadRelease, false);
 
     </script>
     <p><a href="https://github.com/takahirox/nes-rust">NES emulator in Rust</a></p>

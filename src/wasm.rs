@@ -81,19 +81,22 @@ pub struct WasmNes {
 
 #[wasm_bindgen]
 impl WasmNes {
-	pub fn new(contents: Vec<u8>) -> Self {
-		let rom = Rc::new(RefCell::new(Rom::new(contents)));
+	pub fn new() -> Self {
 		let input = Box::new(WasmInput::new());
 		let display = Box::new(WasmDisplay::new());
 		let audio = Box::new(WasmAudio::new());
 		let mut nes = Nes::new(input, display, audio);
-		nes.set_rom(rom);
 
 		WasmNes {
 			nes: nes,
 			pixels: [0; PIXELS_CAPACITY],
 			sample_buffer: [0.0; BUFFER_CAPACITY]
 		}
+	}
+
+	pub fn set_rom(&mut self, contents: Vec<u8>) {
+		let rom = Rc::new(RefCell::new(Rom::new(contents)));
+		self.nes.set_rom(rom);
 	}
 
 	pub fn bootup(&mut self) {

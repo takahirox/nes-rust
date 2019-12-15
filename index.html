@@ -64,7 +64,8 @@
         const ctx = canvas.getContext('2d');
         const imageData = ctx.createImageData(width, height);
         const pixels = new Uint8Array(imageData.data.buffer);
-        const nes = WasmNes.new(romContentArray);
+        const nes = WasmNes.new();
+        nes.set_rom(romContentArray);
         setupAudio(wasm, nes);
         const pixelsPtr = nes.pixels_ptr();
         nes.bootup();
