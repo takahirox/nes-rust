@@ -38,6 +38,13 @@
 
       const roomId = location.href.split('?').pop()
 
+      // Easy mobile detection
+      // @TODO: More proper detection
+      const isMobile = navigator.userAgent.match(/Android/i) ||
+        navigator.userAgent.match(/iPhone/i) ||
+        navigator.userAgent.match(/iPad/i) ||
+        navigator.userAgent.match(/iPod/i);
+
       let webrtc = null;
       let nes = null;
 
@@ -277,8 +284,13 @@
           };
 
           for (const id of padButtonIds) {
-            document.getElementById(id).addEventListener('mousedown', onPadPress, false);
-            document.getElementById(id).addEventListener('click', onPadRelease, false);
+            if (isMobile) {
+              document.getElementById(id).addEventListener('touchstart', onPadPress, false);
+              document.getElementById(id).addEventListener('touchend', onPadRelease, false);
+            } else {
+              document.getElementById(id).addEventListener('mousedown', onPadPress, false);
+              document.getElementById(id).addEventListener('click', onPadRelease, false);
+            }
           }
         };
       };
@@ -449,8 +461,13 @@
             };
 
             for (const id of padButtonIds) {
-              document.getElementById(id).addEventListener('mousedown', onPadPress, false);
-              document.getElementById(id).addEventListener('click', onPadRelease, false);
+              if (isMobile) {
+                document.getElementById(id).addEventListener('touchstart', onPadPress, false);
+                document.getElementById(id).addEventListener('touchend', onPadRelease, false);
+              } else {
+                document.getElementById(id).addEventListener('mousedown', onPadPress, false);
+                document.getElementById(id).addEventListener('click', onPadRelease, false);
+              }
             }
 
             nes.set_rom(new Uint8Array(romArrayBuffer));
