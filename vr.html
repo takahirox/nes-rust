@@ -240,7 +240,10 @@
       };
 
       const canvas = document.createElement('canvas');
-      const context = canvas.getContext('webgl2', {antialias: true});
+      const context = canvas.getContext('webgl2', {
+        antialias: true,
+        xrCompatible: true
+      });
 
       const renderer = new WebGLRenderer({
         canvas: canvas,
