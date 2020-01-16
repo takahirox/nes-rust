@@ -83,6 +83,7 @@
       const camera = new PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000.0);
 
       const gridHelper = new GridHelper(20, 20);
+      gridHelper.visible = false;
       scene.add(gridHelper);
 
       const nesCanvasTexture = new CanvasTexture(document.getElementById('nesCanvas'));
@@ -93,16 +94,17 @@
         new MeshBasicMaterial({color: 0xffffff, map: nesCanvasTexture})
       );
       screen.scale.multiplyScalar(0.005);
-      screen.position.y = 1.6;
-      screen.position.z = -2;
+      screen.position.y = 0.5;
+      screen.position.z = -1.0;
       scene.add(screen);
 
       const joypad = new Mesh(
         new BoxBufferGeometry(1.0, 0.4, 0.05),
         new MeshBasicMaterial({color: 0xAA0000})
       );
-      joypad.position.y = 0.6;
-      joypad.position.z = -2;
+      joypad.position.y = -0.1;
+      joypad.position.z = -0.3;
+      joypad.scale.multiplyScalar(0.5);
 
       const buttons = [];
       const buttonA = new Mesh(
@@ -197,7 +199,7 @@
       buttonMap2.set(buttonLeft, Button.Joypad2_Left);
 
       const rightPointer = new Mesh(
-        new SphereBufferGeometry(0.05),
+        new SphereBufferGeometry(0.025),
         new MeshBasicMaterial({color: 0x0000AA})
       );
       const leftPointer = rightPointer.clone();
@@ -206,7 +208,7 @@
       const buttonWorldPosition = new Vector3();
       const pointerWorldPosition = new Vector3();
       const checkPressed = () => {
-        const threshold = 0.05;
+        const threshold = 0.025;
         for (const button of buttons) {
           const pressed =
             lengthVec.copy(button.getWorldPosition(buttonWorldPosition)).sub(rightPointer.getWorldPosition(pointerWorldPosition)).length() < threshold ||
@@ -260,7 +262,7 @@
       });
 
       document.body.appendChild(renderer.domElement);
-      document.body.appendChild(VRButton.createButton(renderer));
+      document.body.appendChild(VRButton.createButton(renderer, {referenceSpaceType: 'local'}));
 
       window.addEventListener('resize', event => {
         renderer.setSize(window.innerWidth, window.innerHeight);
