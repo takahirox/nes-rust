@@ -4,7 +4,7 @@ use mapper::{Mapper, MapperFactory};
 pub struct Rom {
 	header: RomHeader,
 	memory: Memory,
-	mapper: Box<Mapper>
+	mapper: Box<dyn Mapper>
 }
 
 static HEADER_SIZE: usize = 16;
@@ -96,12 +96,6 @@ impl RomHeader {
 		header
 	}
 
-	fn set_data(&mut self, data: Vec<u8>) {
-		for i in 0..HEADER_SIZE {
-			self.data[i] = data[i];
-		}
-	}
-
 	fn load(&self, address: u32) -> u8 {
 		self.data[address as usize]
 	}
@@ -145,11 +139,11 @@ impl RomHeader {
 		self.load(7)
 	}
 
-	fn ram_bank_num(&self) -> u8 {
+	fn _ram_bank_num(&self) -> u8 {
 		self.load(8)
 	}
 
-	fn unused_field(&self) -> u64 {
+	fn _unused_field(&self) -> u64 {
 		let mut value = 0 as u64;
 		for i in 0..7 as u32 {
 			value = (value << 8) | self.load(9 + i) as u64;
@@ -171,18 +165,18 @@ impl RomHeader {
 		}
 	}
 
-	fn is_horizontal_mirroring(&self) -> bool {
+	fn _is_horizontal_mirroring(&self) -> bool {
 		match self.mirroring_type() {
 			Mirrorings::Horizontal => true,
 			_ => false
 		}
 	}
 
-	fn battery_backed_ram(&self) -> u8 {
+	fn _battery_backed_ram(&self) -> u8 {
 		self.extract_bits(self.control_byte1(), 1, 1)
 	}
 
-	fn trainer_512_bytes(&self) -> u8 {
+	fn _trainer_512_bytes(&self) -> u8 {
 		self.extract_bits(self.control_byte1(), 2, 1)
 	}
 
