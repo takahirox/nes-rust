@@ -25,6 +25,21 @@ function passArray8ToWasm0(arg, malloc) {
     WASM_VECTOR_LEN = arg.length;
     return ptr;
 }
+
+let cachegetFloat32Memory0 = null;
+function getFloat32Memory0() {
+    if (cachegetFloat32Memory0 === null || cachegetFloat32Memory0.buffer !== wasm.memory.buffer) {
+        cachegetFloat32Memory0 = new Float32Array(wasm.memory.buffer);
+    }
+    return cachegetFloat32Memory0;
+}
+
+function passArrayF32ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 4);
+    getFloat32Memory0().set(arg, ptr / 4);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
 /**
 */
 export const Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad1A:4,Joypad1B:5,Joypad1Up:6,Joypad1Down:7,Joypad1Left:8,Joypad1Right:9,Joypad2A:10,Joypad2B:11,Joypad2Up:12,Joypad2Down:13,Joypad2Left:14,Joypad2Right:15, });
@@ -76,28 +91,30 @@ export class WasmNes {
         wasm.wasmnes_step_frame(this.ptr);
     }
     /**
+    * @param {Uint8Array} pixels
     */
-    update_pixels() {
-        wasm.wasmnes_update_pixels(this.ptr);
+    update_pixels(pixels) {
+        try {
+            var ptr0 = passArray8ToWasm0(pixels, wasm.__wbindgen_malloc);
+            var len0 = WASM_VECTOR_LEN;
+            wasm.wasmnes_update_pixels(this.ptr, ptr0, len0);
+        } finally {
+            pixels.set(getUint8Memory0().subarray(ptr0 / 1, ptr0 / 1 + len0));
+            wasm.__wbindgen_free(ptr0, len0 * 1);
+        }
     }
     /**
-    * @returns {number}
+    * @param {Float32Array} buffer
     */
-    pixels_ptr() {
-        var ret = wasm.wasmnes_pixels_ptr(this.ptr);
-        return ret;
-    }
-    /**
-    */
-    update_sample_buffer() {
-        wasm.wasmnes_update_sample_buffer(this.ptr);
-    }
-    /**
-    * @returns {number}
-    */
-    sample_buffer_ptr() {
-        var ret = wasm.wasmnes_sample_buffer_ptr(this.ptr);
-        return ret;
+    update_sample_buffer(buffer) {
+        try {
+            var ptr0 = passArrayF32ToWasm0(buffer, wasm.__wbindgen_malloc);
+            var len0 = WASM_VECTOR_LEN;
+            wasm.wasmnes_update_sample_buffer(this.ptr, ptr0, len0);
+        } finally {
+            buffer.set(getFloat32Memory0().subarray(ptr0 / 4, ptr0 / 4 + len0));
+            wasm.__wbindgen_free(ptr0, len0 * 4);
+        }
     }
     /**
     * @param {number} button
