@@ -13,7 +13,6 @@ pub mod display;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::time::Duration;
 
 use cpu::Cpu;
 use rom::Rom;
@@ -43,18 +42,6 @@ impl Nes {
 		self.cpu.set_rom(rom.clone());
 	}
 
-	pub fn run(&mut self) {
-		self.bootup();
-		loop {
-			self.step_frame();
-			// @TODO: Fix sleep duration time
-			// @TODO: timer should depend on platform
-			//        (For example we use requestAnimationFrame on WASM + Web)
-			//        so should we move it out from this class?
-			std::thread::sleep(Duration::from_millis(2));
-		}
-	}
-
 	pub fn step(&mut self) {
 		self.cpu.step();
 	}
@@ -71,22 +58,19 @@ impl Nes {
 		self.cpu.step_frame();
 	}
 
-	// For WASM
-	// @TODO: Are these methods really necessary?
-
 	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
-		self.cpu.copy_pixels(pixels);
+		self.cpu.get_ppu().get_display().copy_pixels(pixels);
 	}
 
 	pub fn copy_sample_buffer(&mut self, buffer: &mut [f32; BUFFER_CAPACITY]) {
-		self.cpu.copy_sample_buffer(buffer);
+		self.cpu.get_mut_apu().get_mut_audio().copy_sample_buffer(buffer);
 	}
 
 	pub fn press_button(&mut self, button: Button) {
-		self.cpu.press_button(button);
+		self.cpu.get_mut_input().press(button);
 	}
 
 	pub fn release_button(&mut self, button: Button) {
-		self.cpu.release_button(button);
+		self.cpu.get_mut_input().release(button);
 	}
 }

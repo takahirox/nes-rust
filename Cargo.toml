@@ -1,7 +1,7 @@
 [package]
 name = "nes_rust"
 version = "0.1.0"
-descriptioni = "NES emulator written in Rust"
+description = "NES emulator written in Rust"
 authors = ["Takahiro <hogehoge@gachapin.jp>"]
 license = "MIT"
 homepage = "https://github.com/takahirox/nes-rust"
