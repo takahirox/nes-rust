@@ -77,6 +77,6 @@ impl Display for Sdl2Display {
 		self.renderer.present();
 	}
 
-	fn copy_pixels(&self, _pixels: &mut [u8; PIXELS_CAPACITY]) {
+	fn copy_to_rgba_pixels(&self, _pixels: &mut [u8]) {
 	}
 }

@@ -19,16 +19,15 @@ use rom::Rom;
 use button::Button;
 use input::Input;
 use display::Display;
-use display::PIXELS_CAPACITY;
 use audio::Audio;
-use audio::BUFFER_CAPACITY;
 
 pub struct Nes {
 	cpu: Cpu
 }
 
 impl Nes {
-	pub fn new(input: Box<dyn Input>, display: Box<dyn Display>, audio: Box<dyn Audio>) -> Self {
+	pub fn new(input: Box<dyn Input>, display: Box<dyn Display>,
+		audio: Box<dyn Audio>) -> Self {
 		Nes {
 			cpu: Cpu::new(
 				input,
@@ -58,11 +57,11 @@ impl Nes {
 		self.cpu.step_frame();
 	}
 
-	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
-		self.cpu.get_ppu().get_display().copy_pixels(pixels);
+	pub fn copy_pixels(&self, pixels: &mut [u8]) {
+		self.cpu.get_ppu().get_display().copy_to_rgba_pixels(pixels);
 	}
 
-	pub fn copy_sample_buffer(&mut self, buffer: &mut [f32; BUFFER_CAPACITY]) {
+	pub fn copy_sample_buffer(&mut self, buffer: &mut [f32]) {
 		self.cpu.get_mut_apu().get_mut_audio().copy_sample_buffer(buffer);
 	}
 

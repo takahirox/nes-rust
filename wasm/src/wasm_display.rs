@@ -2,6 +2,7 @@ use nes_rust::display::{
 	Display,
 	PIXEL_BYTES,
 	PIXELS_CAPACITY,
+	SCREEN_HEIGHT,
 	SCREEN_WIDTH
 };
 
@@ -32,9 +33,15 @@ impl Display for WasmDisplay {
 	fn update_screen(&mut self) {
 	}
 
-	fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
-		for i in 0..self.pixels.len() {
-			pixels[i] = self.pixels[i];
+	fn copy_to_rgba_pixels(&self, pixels: &mut [u8]) {
+		for y in 0..SCREEN_HEIGHT {
+			for x in 0..SCREEN_WIDTH {
+				let base_index = (y * SCREEN_WIDTH + x) as usize;
+				pixels[base_index * 4 + 0] = self.pixels[base_index * 3 + 0];
+				pixels[base_index * 4 + 1] = self.pixels[base_index * 3 + 1];
+				pixels[base_index * 4 + 2] = self.pixels[base_index * 3 + 2];
+				pixels[base_index * 4 + 3] = 255;
+			}
 		}
 	}
 }

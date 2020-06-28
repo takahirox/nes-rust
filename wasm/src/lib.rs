@@ -12,8 +12,6 @@ use std::rc::Rc;
 
 use nes_rust::Nes;
 use nes_rust::rom::Rom;
-use nes_rust::display::PIXELS_CAPACITY;
-use nes_rust::audio::BUFFER_CAPACITY;
 use nes_rust::button;
 
 use wasm_audio::WasmAudio;
@@ -65,9 +63,7 @@ fn to_button_internal(button: Button) -> button::Button {
 
 #[wasm_bindgen]
 pub struct WasmNes {
-	nes: Nes,
-	pixels: [u8; PIXELS_CAPACITY],
-	sample_buffer: [f32; BUFFER_CAPACITY]
+	nes: Nes
 }
 
 #[wasm_bindgen]
@@ -79,9 +75,7 @@ impl WasmNes {
 		let nes = Nes::new(input, display, audio);
 
 		WasmNes {
-			nes: nes,
-			pixels: [0; PIXELS_CAPACITY],
-			sample_buffer: [0.0; BUFFER_CAPACITY]
+			nes: nes
 		}
 	}
 
@@ -102,20 +96,12 @@ impl WasmNes {
 		self.nes.step_frame();
 	}
 
-	pub fn update_pixels(&mut self) {
-		self.nes.copy_pixels(&mut self.pixels);
+	pub fn update_pixels(&mut self, pixels: &mut [u8]) {
+		self.nes.copy_pixels(pixels);
 	}
 
-	pub fn pixels_ptr(&self) -> *const u8 {
-		self.pixels.as_ptr()
-	}
-
-	pub fn update_sample_buffer(&mut self) {
-		self.nes.copy_sample_buffer(&mut self.sample_buffer);
-	}
-
-	pub fn sample_buffer_ptr(&self) -> *const f32 {
-		self.sample_buffer.as_ptr()
+	pub fn update_sample_buffer(&mut self, buffer: &mut [f32]) {
+		self.nes.copy_sample_buffer(buffer);
 	}
 
 	pub fn press_button(&mut self, button: Button) {

@@ -28,7 +28,7 @@ impl Audio for WasmAudio {
 		self.buffer_index += 1;
 	}
 
-	fn copy_sample_buffer(&mut self, sample_buffer: &mut [f32; BUFFER_CAPACITY]) {
+	fn copy_sample_buffer(&mut self, sample_buffer: &mut [f32]) {
 		// @TODO: Remove side effect?
 
 		// @TODO: Remove magic number
