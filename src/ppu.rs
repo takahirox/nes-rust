@@ -3,7 +3,6 @@ use memory::Memory;
 use rom::Rom;
 use rom::Mirrorings;
 use display::Display;
-use display::PIXELS_CAPACITY;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -264,10 +263,6 @@ impl Ppu {
 		// but I do for now
 		self.scanline = 0;
 		self.cycle = 0;
-	}
-
-	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
-		self.display.copy_pixels(pixels);
 	}
 
 	pub fn step(&mut self) {
@@ -1106,6 +1101,10 @@ impl Ppu {
 			Some(ref p) => p.borrow_mut().store(address as u32, value),
 			None => {} // @TODO: Throw error?
 		};
+	}
+
+	pub fn get_display(&self) -> &Box<dyn Display> {
+		&self.display
 	}
 }
 

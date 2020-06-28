@@ -9,8 +9,6 @@ use joypad::Joypad;
 use input::Input;
 use display::Display;
 use audio::Audio;
-use display::PIXELS_CAPACITY;
-use audio::BUFFER_CAPACITY;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -1156,22 +1154,16 @@ impl Cpu {
 		self.p.set_i();
 	}
 
-	// For WASM 
-
-	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
-		self.ppu.copy_pixels(pixels);
+	pub fn get_ppu(&self) -> &Ppu {
+		&self.ppu
 	}
 
-	pub fn copy_sample_buffer(&mut self, buffer: &mut [f32; BUFFER_CAPACITY]) {
-		self.apu.copy_sample_buffer(buffer);
+	pub fn get_mut_apu(&mut self) -> &mut Apu {
+		&mut self.apu
 	}
 
-	pub fn press_button(&mut self, button: button::Button) {
-		self.input.press(button);
-	}
-
-	pub fn release_button(&mut self, button: button::Button) {
-		self.input.release(button);
+	pub fn get_mut_input(&mut self) -> &mut Box<dyn Input> {
+		&mut self.input
 	}
 
 	//

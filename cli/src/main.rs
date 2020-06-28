@@ -5,13 +5,15 @@ mod sdl2_input;
 mod sdl2_display;
 mod sdl2_audio;
 
-use std::env;
-use nes_rust::Nes;
-use nes_rust::rom::Rom;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
+use std::env;
+
+use nes_rust::Nes;
+use nes_rust::rom::Rom;
 
 use sdl2_input::Sdl2Input;
 use sdl2_display::Sdl2Display;
@@ -40,6 +42,11 @@ fn main() -> std::io::Result<()> {
 	let audio = Box::new(Sdl2Audio::new(audio_subsystem));
 	let mut nes = Nes::new(input, display, audio);
 	nes.set_rom(rom);
-	nes.run();
-	Ok(())
+
+	nes.bootup();
+	loop {
+		nes.step_frame();
+		// @TODO: Fix sleep duration time
+		std::thread::sleep(Duration::from_millis(2));
+	}
 }
