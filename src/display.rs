@@ -6,5 +6,5 @@ pub const PIXELS_CAPACITY: usize = SCREEN_WIDTH as usize * SCREEN_HEIGHT as usiz
 pub trait Display {
 	fn render_pixel(&mut self, x: u16, y: u16, c: u32);
 	fn update_screen(&mut self);
-	fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]);
+	fn copy_to_rgba_pixels(&self, pixels: &mut [u8]);
 }
