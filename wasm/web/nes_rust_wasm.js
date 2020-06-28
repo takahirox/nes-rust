@@ -27,7 +27,7 @@ function passArray8ToWasm0(arg, malloc) {
 }
 /**
 */
-export const Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad1_A:4,Joypad1_B:5,Joypad1_Up:6,Joypad1_Down:7,Joypad1_Left:8,Joypad1_Right:9,Joypad2_A:10,Joypad2_B:11,Joypad2_Up:12,Joypad2_Down:13,Joypad2_Left:14,Joypad2_Right:15, });
+export const Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad1A:4,Joypad1B:5,Joypad1Up:6,Joypad1Down:7,Joypad1Left:8,Joypad1Right:9,Joypad2A:10,Joypad2B:11,Joypad2Up:12,Joypad2Down:13,Joypad2Left:14,Joypad2Right:15, });
 /**
 */
 export class WasmNes {
