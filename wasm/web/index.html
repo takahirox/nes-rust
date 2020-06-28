@@ -35,19 +35,16 @@
         const context = new audioContext({sampleRate: 44100});
         const scriptProcessor = context.createScriptProcessor(bufferLength, 0, 1);
 
-        const sampleBufferPtr = (nes.sample_buffer_ptr() / 4) | 0;
-        const wasmMemory = new Float32Array(wasm.memory.buffer);
-
         scriptProcessor.onaudioprocess = e => {
-          nes.update_sample_buffer();
           const data = e.outputBuffer.getChannelData(0);
-          for (let i = 0; i < bufferLength; i++) {
-            data[i] = wasmMemory[sampleBufferPtr + i] * 0.25;
+          nes.update_sample_buffer(data);
+          // Adjust volume
+          for (let i = 0; i < data.length; i++) {
+            data[i] *= 0.25;
           }
         };
 
         scriptProcessor.connect(context.destination);
-        const sampleRate = context.sampleRate;
       };
 
       const start = romArrayBuffer => {
@@ -67,13 +64,11 @@
         const nes = WasmNes.new();
         nes.set_rom(romContentArray);
         setupAudio(wasm, nes);
-        const pixelsPtr = nes.pixels_ptr();
         nes.bootup();
-        const wasmMemory = new Uint8Array(wasm.memory.buffer);
 
         // FPS counter
 
-	let totalElapsedTime = 0.0;
+        let totalElapsedTime = 0.0;
         let previousTime = performance.now();
         let frameCount = 0;
         const fpsSpan = document.getElementById('fpsSpan');
@@ -97,16 +92,7 @@
           requestAnimationFrame(stepFrame);
           countFps();
           nes.step_frame();
-          nes.update_pixels();
-          for (let y = 0; y < 240; y++) {
-            for (let x = 0; x < 256; x++) {
-              const baseIndex = y * 256 + x;
-              pixels[baseIndex * 4] = wasmMemory[pixelsPtr + baseIndex * 3];
-              pixels[baseIndex * 4 + 1] = wasmMemory[pixelsPtr + baseIndex * 3 + 1];
-              pixels[baseIndex * 4 + 2] = wasmMemory[pixelsPtr + baseIndex * 3 + 2];
-              pixels[baseIndex * 4 + 3] = 255;
-            }
-          }
+          nes.update_pixels(pixels);
           ctx.putImageData(imageData, 0, 0);
         };
 
