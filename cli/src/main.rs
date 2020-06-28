@@ -1,25 +1,13 @@
-mod register;
-mod memory;
-mod mapper;
-mod rom;
-mod cpu;
-mod ppu;
-mod apu;
-mod button;
-mod joypad;
-mod input;
-mod display;
-mod audio;
-mod nes;
+extern crate nes_rust;
+extern crate sdl2;
 
 mod sdl2_input;
 mod sdl2_display;
 mod sdl2_audio;
-extern crate sdl2;
 
 use std::env;
-use nes::Nes;
-use rom::Rom;
+use nes_rust::Nes;
+use nes_rust::rom::Rom;
 use std::fs::File;
 use std::io::Read;
 use std::cell::RefCell;
