@@ -14,7 +14,6 @@ use nes_rust::Nes;
 use nes_rust::rom::Rom;
 use nes_rust::display::PIXELS_CAPACITY;
 use nes_rust::audio::BUFFER_CAPACITY;
-use nes_rust::input::Input;
 use nes_rust::button;
 
 use wasm_audio::WasmAudio;
@@ -29,18 +28,18 @@ pub enum Button {
 	Reset,
 	Select,
 	Start,
-	Joypad1_A,
-	Joypad1_B,
-	Joypad1_Up,
-	Joypad1_Down,
-	Joypad1_Left,
-	Joypad1_Right,
-	Joypad2_A,
-	Joypad2_B,
-	Joypad2_Up,
-	Joypad2_Down,
-	Joypad2_Left,
-	Joypad2_Right
+	Joypad1A,
+	Joypad1B,
+	Joypad1Up,
+	Joypad1Down,
+	Joypad1Left,
+	Joypad1Right,
+	Joypad2A,
+	Joypad2B,
+	Joypad2Up,
+	Joypad2Down,
+	Joypad2Left,
+	Joypad2Right
 }
 
 fn to_button_internal(button: Button) -> button::Button {
@@ -49,18 +48,18 @@ fn to_button_internal(button: Button) -> button::Button {
 		Button::Reset => button::Button::Reset,
 		Button::Select => button::Button::Select,
 		Button::Start => button::Button::Start,
-		Button::Joypad1_A => button::Button::Joypad1_A,
-		Button::Joypad1_B => button::Button::Joypad1_B,
-		Button::Joypad1_Up => button::Button::Joypad1_Up,
-		Button::Joypad1_Down => button::Button::Joypad1_Down,
-		Button::Joypad1_Left => button::Button::Joypad1_Left,
-		Button::Joypad1_Right => button::Button::Joypad1_Right,
-		Button::Joypad2_A => button::Button::Joypad2_A,
-		Button::Joypad2_B => button::Button::Joypad2_B,
-		Button::Joypad2_Up => button::Button::Joypad2_Up,
-		Button::Joypad2_Down => button::Button::Joypad2_Down,
-		Button::Joypad2_Left => button::Button::Joypad2_Left,
-		Button::Joypad2_Right => button::Button::Joypad2_Right
+		Button::Joypad1A => button::Button::Joypad1A,
+		Button::Joypad1B => button::Button::Joypad1B,
+		Button::Joypad1Up => button::Button::Joypad1Up,
+		Button::Joypad1Down => button::Button::Joypad1Down,
+		Button::Joypad1Left => button::Button::Joypad1Left,
+		Button::Joypad1Right => button::Button::Joypad1Right,
+		Button::Joypad2A => button::Button::Joypad2A,
+		Button::Joypad2B => button::Button::Joypad2B,
+		Button::Joypad2Up => button::Button::Joypad2Up,
+		Button::Joypad2Down => button::Button::Joypad2Down,
+		Button::Joypad2Left => button::Button::Joypad2Left,
+		Button::Joypad2Right => button::Button::Joypad2Right
 	}
 }
 
@@ -77,7 +76,7 @@ impl WasmNes {
 		let input = Box::new(WasmInput::new());
 		let display = Box::new(WasmDisplay::new());
 		let audio = Box::new(WasmAudio::new());
-		let mut nes = Nes::new(input, display, audio);
+		let nes = Nes::new(input, display, audio);
 
 		WasmNes {
 			nes: nes,

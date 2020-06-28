@@ -29,7 +29,7 @@ pub struct Nes {
 }
 
 impl Nes {
-	pub fn new(input: Box<Input>, display: Box<Display>, audio: Box<Audio>) -> Self {
+	pub fn new(input: Box<dyn Input>, display: Box<dyn Display>, audio: Box<dyn Audio>) -> Self {
 		Nes {
 			cpu: Cpu::new(
 				input,
@@ -45,7 +45,7 @@ impl Nes {
 
 	pub fn run(&mut self) {
 		self.bootup();
-		while true {
+		loop {
 			self.step_frame();
 			// @TODO: Fix sleep duration time
 			// @TODO: timer should depend on platform

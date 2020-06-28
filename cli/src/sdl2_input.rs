@@ -1,5 +1,4 @@
 use sdl2::EventPump;
-use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
 use nes_rust::input::Input;
@@ -11,19 +10,19 @@ fn keycode_to_button(key: Keycode) -> Option<button::Button> {
 		// joypad1
 		Keycode::Space => Some(button::Button::Start),
 		Keycode::S => Some(button::Button::Select),
-		Keycode::A => Some(button::Button::Joypad1_A),
-		Keycode::B => Some(button::Button::Joypad1_B),
-		Keycode::Up => Some(button::Button::Joypad1_Up),
-		Keycode::Down => Some(button::Button::Joypad1_Down),
-		Keycode::Left => Some(button::Button::Joypad1_Left),
-		Keycode::Right => Some(button::Button::Joypad1_Right),
+		Keycode::A => Some(button::Button::Joypad1A),
+		Keycode::B => Some(button::Button::Joypad1B),
+		Keycode::Up => Some(button::Button::Joypad1Up),
+		Keycode::Down => Some(button::Button::Joypad1Down),
+		Keycode::Left => Some(button::Button::Joypad1Left),
+		Keycode::Right => Some(button::Button::Joypad1Right),
 		// joypad2
-		Keycode::X => Some(button::Button::Joypad2_A),
-		Keycode::Z => Some(button::Button::Joypad2_B),
-		Keycode::Num8 => Some(button::Button::Joypad2_Up),
-		Keycode::Num2 => Some(button::Button::Joypad2_Down),
-		Keycode::Num4 => Some(button::Button::Joypad2_Left),
-		Keycode::Num6 => Some(button::Button::Joypad2_Right),
+		Keycode::X => Some(button::Button::Joypad2A),
+		Keycode::Z => Some(button::Button::Joypad2B),
+		Keycode::Num8 => Some(button::Button::Joypad2Up),
+		Keycode::Num2 => Some(button::Button::Joypad2Down),
+		Keycode::Num4 => Some(button::Button::Joypad2Left),
+		Keycode::Num6 => Some(button::Button::Joypad2Right),
 		_ => None
 	}
 }
@@ -68,9 +67,9 @@ impl Input for Sdl2Input {
 		}
 	}
 
-	fn press(&mut self, button: button::Button) {
+	fn press(&mut self, _button: button::Button) {
 	}
 
-	fn release(&mut self, button: button::Button) {
+	fn release(&mut self, _button: button::Button) {
 	}
 }

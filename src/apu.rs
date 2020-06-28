@@ -29,7 +29,7 @@ pub struct Apu {
 	dmc_irq_active: bool,
 	pub irq_interrupted: bool,
 
-	audio: Box<Audio>
+	audio: Box<dyn Audio>
 }
 
 static LENGTH_TABLE: [u8; 32] = [
@@ -40,7 +40,7 @@ static LENGTH_TABLE: [u8; 32] = [
 ];
 
 impl Apu {
-	pub fn new(audio: Box<Audio>) -> Self {
+	pub fn new(audio: Box<dyn Audio>) -> Self {
 		Apu {
 			cycle: 0,
 			step: 0,
@@ -341,7 +341,6 @@ struct ApuPulse {
 	length_counter: u8,
 
 	sweep_reload_flag: bool,
-	sweep_cycle: u16,
 	sweep_counter: u8
 }
 
@@ -374,7 +373,6 @@ impl ApuPulse {
 			envelope_decay_level_counter: 0,
 			length_counter: 0,
 			sweep_reload_flag: false,
-			sweep_cycle: 0,
 			sweep_counter: 0
 		}
 	}

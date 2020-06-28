@@ -70,10 +70,13 @@ impl Display for Sdl2Display {
 			.update(None, &self.pixels, SCREEN_WIDTH as usize * PIXEL_BYTES as usize)
 			.unwrap();
 		self.renderer.clear();
-		self.renderer.copy(&self.texture, None, None);
+		match self.renderer.copy(&self.texture, None, None) {
+			Ok(()) => {},
+			Err(_e) => {} // @TODO: Error handling
+		};
 		self.renderer.present();
 	}
 
-	fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
+	fn copy_pixels(&self, _pixels: &mut [u8; PIXELS_CAPACITY]) {
 	}
 }

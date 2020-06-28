@@ -76,6 +76,6 @@ impl Audio for Sdl2Audio {
 		}
 	}
 
-	fn copy_sample_buffer(&mut self, sample_buffer: &mut [f32; BUFFER_CAPACITY]) {
+	fn copy_sample_buffer(&mut self, _sample_buffer: &mut [f32; BUFFER_CAPACITY]) {
 	}
 }

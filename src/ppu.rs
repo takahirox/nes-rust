@@ -124,7 +124,7 @@ pub struct Ppu {
 
 	// -- 
 
-	display: Box<Display>,
+	display: Box<dyn Display>,
 
 	rom: Option<Rc<RefCell<Rom>>>,
 
@@ -200,7 +200,7 @@ static PALETTES: [u32; 0x40] = [
 ];
 
 impl Ppu {
-	pub fn new(display: Box<Display>) -> Self {
+	pub fn new(display: Box<dyn Display>) -> Self {
 		Ppu {
 			frame: 0,
 			cycle: 0,
@@ -360,14 +360,14 @@ impl Ppu {
 				//	return;
 				//}
 
-				let previousNmiEnabled = self.ppuctrl.is_nmi_enabled();
+				let previous_nmi_enabled = self.ppuctrl.is_nmi_enabled();
 				self.ppuctrl.store(value);
 
 				// Immediately generate an NMI if the PPU is currently
 				// in vertical blank, PPUSTATUS vblank flag is still set,
 				// and changing the NMI flag from 0 to 1
 				if self.ppustatus.is_vblank() &&
-					!previousNmiEnabled &&
+					!previous_nmi_enabled &&
 					self.ppuctrl.is_nmi_enabled() {
 					self.nmi_interrupted = true;
 				}
@@ -1124,7 +1124,7 @@ impl PpuControlRegister {
 		}
 	}
 
-	fn load(&self) -> u8 {
+	fn _load(&self) -> u8 {
 		self.register.load()
 	}
 
@@ -1180,7 +1180,7 @@ impl PpuControlRegister {
 
 	// Bit 0-1. Base nametable address
 	// -- 0: 0x2000, 1: 0x2400, 2: 0x2800, 3: 0x2C00
-	fn base_name_table_address(&self) -> u16 {
+	fn _base_name_table_address(&self) -> u16 {
 		match self.register.load_bits(0, 2) {
 			0 => 0x2000,
 			1 => 0x2400,
@@ -1204,7 +1204,7 @@ impl PpuMaskRegister {
 		}
 	}
 
-	fn load(&self) -> u8 {
+	fn _load(&self) -> u8 {
 		self.register.load()
 	}
 
