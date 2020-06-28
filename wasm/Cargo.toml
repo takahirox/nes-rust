@@ -1,0 +1,13 @@
+[package]
+name = "nes_rust_wasm"
+version = "0.1.0"
+authors = ["Takahiro <hogehoge@gachapin.jp>"]
+
+[dependencies]
+nes_rust = {path = "../"}
+wasm-bindgen = "0.2.63"
+
+[lib]
+name = "nes_rust_wasm"
+path = "src/lib.rs"
+crate-type = ["cdylib"]

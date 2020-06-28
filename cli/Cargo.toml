@@ -1,0 +1,9 @@
+[package]
+name = "nes_rust_cli"
+version = "0.1.0"
+authors = ["Takahiro <hogehoge@gachapin.jp>"]
+
+[dependencies]
+gl = {git = "https://github.com/bjz/gl-rs"}
+nes_rust = {path = "../"}
+sdl2 = "0.32"
