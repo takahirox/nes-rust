@@ -8,11 +8,9 @@ nes-rust is a NES emulator written in Rust.
 
 ## Online Demo
 
-[Online Singleplay Demo](https://takahirox.github.io/nes-rust/index.html)
-
-[Online Multiplay Demo](https://takahirox.github.io/nes-rust/multiplay.html) / [Video](https://twitter.com/superhoge/status/1205427421010247680)
-
-[Online VR Multiplay Demo](https://takahirox.github.io/nes-rust/vr.html) / [Video](https://twitter.com/superhoge/status/1209685614074875906)
+- [Online Singleplay Demo](https://takahirox.github.io/nes-rust/index.html)
+- [Online Multiplay Demo](https://takahirox.github.io/nes-rust/multiplay.html) / [Video](https://twitter.com/superhoge/status/1205427421010247680)
+- [Online VR Multiplay Demo](https://takahirox.github.io/nes-rust/vr.html) / [Video](https://twitter.com/superhoge/status/1209685614074875906)
 
 ## Screenshots
 
