@@ -7,8 +7,6 @@ mod sdl2_audio;
 
 use std::fs::File;
 use std::io::Read;
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::time::Duration;
 use std::env;
 
@@ -31,8 +29,8 @@ fn main() -> std::io::Result<()> {
 	let mut file = File::open(filename)?;
 	let mut contents = vec![];
 	file.read_to_end(&mut contents)?;
-	let rom = Rc::new(RefCell::new(Rom::new(contents)));
-	assert_eq!(rom.borrow().valid(), true);
+	let rom = Rom::new(contents);
+	assert_eq!(rom.valid(), true);
 
 	let sdl = sdl2::init().unwrap();
 	let event_pump = sdl.event_pump().unwrap();

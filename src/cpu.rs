@@ -1,6 +1,6 @@
 use register::Register;
 use memory::Memory;
-use rom::Rom;
+use rom::{HEADER_SIZE, Rom};
 use ppu::Ppu;
 use apu::Apu;
 use button;
@@ -9,8 +9,6 @@ use joypad::Joypad;
 use input::Input;
 use display::Display;
 use audio::Audio;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 fn to_joypad_button(button: button::Button) -> joypad::Button {
 	match button {
@@ -58,7 +56,7 @@ pub struct Cpu {
 	apu: Apu,
 	joypad1: Joypad,
 	joypad2: Joypad,
-	rom: Option<Rc<RefCell<Rom>>>
+	rom: Rom
 }
 
 // interrupts
@@ -1110,13 +1108,12 @@ impl Cpu {
 			apu: Apu::new(audio),
 			joypad1: Joypad::new(),
 			joypad2: Joypad::new(),
-			rom: None
+			rom: Rom::new(vec![0; HEADER_SIZE]) // dummy
 		}
 	}
 
-	pub fn set_rom(&mut self, rom: Rc<RefCell<Rom>>) {
-		self.ppu.set_rom(rom.clone());
-		self.rom = Some(rom);
+	pub fn set_rom(&mut self, rom: Rom) {
+		self.rom = rom;
 	}
 
 	pub fn bootup(&mut self) {
@@ -1171,7 +1168,7 @@ impl Cpu {
 	pub fn step(&mut self) {
 		let stall_cycles = self.step_internal();
 		for _i in 0..stall_cycles * 3 {
-			self.ppu.step();
+			self.ppu.step(&mut self.rom);
 		}
 		for _i in 0..stall_cycles {
 			// No reference to CPU from APU so detecting if APU DMC needs
@@ -1736,7 +1733,7 @@ impl Cpu {
 		// 0x2008 - 0x3FFF: Mirrors of 0x2000 - 0x2007 (repeats every 8 bytes)
 
 		if address >= 0x2000 && address < 0x4000 {
-			return self.ppu.load_register(address & 0x2007);
+			return self.ppu.load_register(address & 0x2007, &self.rom);
 		}
 
 		if address >= 0x4000 && address < 0x4014 {
@@ -1744,7 +1741,7 @@ impl Cpu {
 		}
 
 		if address == 0x4014 {
-			return self.ppu.load_register(address);
+			return self.ppu.load_register(address, &self.rom);
 		}
 
 		if address == 0x4015 {
@@ -1772,10 +1769,7 @@ impl Cpu {
 		}
 
 		if address >= 0x8000 {
-			return match self.rom {
-				Some(ref p) => p.borrow().load(address as u32),
-				None => 0
-			};
+			return self.rom.load(address as u32);
 		}
 
 		0 // dummy
@@ -1811,7 +1805,7 @@ impl Cpu {
 		// 0x2008 - 0x3FFF: Mirrors of 0x2000 - 0x2007 (repeats every 8 bytes)
 
 		if address >= 0x2000 && address < 0x4000 {
-			self.ppu.store_register(address & 0x2007, value);
+			self.ppu.store_register(address & 0x2007, value, &mut self.rom);
 		}
 
 		if address >= 0x4000 && address < 0x4014 {
@@ -1821,7 +1815,7 @@ impl Cpu {
 		// @TODO: clean up
 
 		if address == 0x4014 {
-			self.ppu.store_register(address, value);
+			self.ppu.store_register(address, value, &mut self.rom);
 
 			// DMA.
 			// Writing 0xXX will upload 256 bytes of data from CPU page
@@ -1829,7 +1823,7 @@ impl Cpu {
 			let offset = (value as u16) << 8;
 			for i in 0..256 {
 				let data = self.load(offset + i);
-				self.ppu.store_register(0x2004, data);
+				self.ppu.store_register(0x2004, data, &mut self.rom);
 			}
 
 			// @TODO
@@ -1864,12 +1858,7 @@ impl Cpu {
 		// 0x8000 - 0xFFFF: ROM
 
 		if address >= 0x8000 {
-			match self.rom {
-				Some(ref mut p) => p.borrow_mut().store(address as u32, value),
-				_ => {
-					// @TODO: Throw?
-				}
-			};
+			self.rom.store(address as u32, value);
 		}
 	}
 

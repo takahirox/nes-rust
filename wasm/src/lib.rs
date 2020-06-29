@@ -7,9 +7,6 @@ mod wasm_input;
 
 use wasm_bindgen::prelude::*;
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use nes_rust::Nes;
 use nes_rust::rom::Rom;
 use nes_rust::button;
@@ -73,15 +70,13 @@ impl WasmNes {
 		let display = Box::new(WasmDisplay::new());
 		let audio = Box::new(WasmAudio::new());
 		let nes = Nes::new(input, display, audio);
-
 		WasmNes {
 			nes: nes
 		}
 	}
 
 	pub fn set_rom(&mut self, contents: Vec<u8>) {
-		let rom = Rc::new(RefCell::new(Rom::new(contents)));
-		self.nes.set_rom(rom);
+		self.nes.set_rom(Rom::new(contents));
 	}
 
 	pub fn bootup(&mut self) {
@@ -90,6 +85,10 @@ impl WasmNes {
 
 	pub fn reset(&mut self) {
 		self.nes.reset();
+	}
+
+	pub fn step(&mut self) {
+		self.nes.step();
 	}
 
 	pub fn step_frame(&mut self) {
