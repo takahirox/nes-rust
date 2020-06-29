@@ -8,7 +8,7 @@ nes-rust is a NES emulator written in Rust.
 
 [Online VR Multiplay Demo](https://takahirox.github.io/nes-rust/vr.html) / [Video](https://twitter.com/superhoge/status/1209685614074875906)
 
-# Screenshots
+## Screenshots
 
 [nestest](http://wiki.nesdev.com/w/index.php/Emulator_tests)
 
@@ -18,35 +18,38 @@ nes-rust is a NES emulator written in Rust.
 
 ![Sgt. Helmet Training Day](./screenshots/Sgt_Helmet.png)
 
-# Features
+## Features
 
 - Audio support with SDL2 / WebAudio
 - WebAssembly support
 - Remote multiplay support with WebRTC
 
-# How to build and run
-
-## Standalone
-
-You need SDL2. Refer to [Rust-SDL2 Readme](https://github.com/Rust-SDL2/rust-sdl2#rust) for the detail.
+## How to build core library locally
 
 ```
 $ git clone https://github.com/takahirox/nes-rust.git
 $ cd nes-rust
-$ # install or setup SDL2
 $ cargo build --release
-$ cargo run --release path_to_rom
 ```
 
-## Web (WebAssembly)
+## How to run as desktop application
 
-You need wasm-bindgen client. Refer to [the document](https://rustwasm.github.io/docs/wasm-bindgen/) for the detail.
+Prerequirements
+- Install [Rust-SDL2](https://github.com/Rust-SDL2/rust-sdl2#rust)
 
 ```
-$ git clone https://github.com/takahirox/nes-rust.git
-$ cd nes-rust
-$ # install wasm-bindgen
-$ cargo build --release --lib --target wasm32-unknown-unknown
-$ wasm-bindgen ./target/wasm32-unknown-unknown/release/nes_rust.wasm --out-dir ./wasm/ --target web --no-typescript
-# Boot up local web server and access index.html via the server
+$ cd nes-rust/cli
+$ cargo run --release path_to_rom_file
+```
+
+## How to build WebAssembly NES emulator and run in the browser locally
+
+Prerequirements
+- Install [wasm-bindgen client](https://rustwasm.github.io/docs/wasm-bindgen/)
+
+```
+$ cd nes-rust/wasm
+$ bash build_wasm.sh
+$ cd ..
+# Boot local web server up and access wasm/web/index.html via the server
 ```
