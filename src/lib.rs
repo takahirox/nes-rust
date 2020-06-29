@@ -11,9 +11,6 @@ pub mod joypad;
 pub mod audio;
 pub mod display;
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use cpu::Cpu;
 use rom::Rom;
 use button::Button;
@@ -37,8 +34,8 @@ impl Nes {
 		}
 	}
 
-	pub fn set_rom(&mut self, rom: Rc<RefCell<Rom>>) {
-		self.cpu.set_rom(rom.clone());
+	pub fn set_rom(&mut self, rom: Rom) {
+		self.cpu.set_rom(rom);
 	}
 
 	pub fn step(&mut self) {

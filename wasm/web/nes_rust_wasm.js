@@ -87,6 +87,11 @@ export class WasmNes {
     }
     /**
     */
+    step() {
+        wasm.wasmnes_step(this.ptr);
+    }
+    /**
+    */
     step_frame() {
         wasm.wasmnes_step_frame(this.ptr);
     }

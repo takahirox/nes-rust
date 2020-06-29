@@ -7,7 +7,7 @@ pub struct Rom {
 	mapper: Box<dyn Mapper>
 }
 
-static HEADER_SIZE: usize = 16;
+pub static HEADER_SIZE: usize = 16;
 
 pub enum Mirrorings {
 	SingleScreen,
