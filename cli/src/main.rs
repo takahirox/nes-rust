@@ -45,6 +45,6 @@ fn main() -> std::io::Result<()> {
 	loop {
 		nes.step_frame();
 		// @TODO: Fix sleep duration time
-		std::thread::sleep(Duration::from_millis(2));
+		std::thread::sleep(Duration::from_millis(1));
 	}
 }

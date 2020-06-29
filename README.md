@@ -42,14 +42,10 @@ $ cd nes-rust/cli
 $ cargo run --release path_to_rom_file
 ```
 
-## How to build WebAssembly NES emulator and run in the browser locally
+## How to import and use WebAssembly NES emulator in a web browser
 
-Prerequirements
-- Install [wasm-bindgen client](https://rustwasm.github.io/docs/wasm-bindgen/)
+See [wasm/web](https://github.com/takahirox/nes-rust/tree/master/wasm/web)
 
-```
-$ cd nes-rust/wasm
-$ bash build_wasm.sh
-$ cd ..
-# Boot local web server up and access wasm/web/index.html via the server
-```
+## How to install and use WebAssembly NES emulator npm package
+
+See [wasm/nodejs](https://github.com/takahirox/nes-rust/tree/master/wasm/nodejs)
