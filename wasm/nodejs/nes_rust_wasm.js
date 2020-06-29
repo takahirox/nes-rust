@@ -1,5 +1,7 @@
-
+let imports = {};
+imports['__wbindgen_placeholder__'] = module.exports;
 let wasm;
+const { TextDecoder } = require(String.raw`util`);
 
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
@@ -42,7 +44,7 @@ function passArrayF32ToWasm0(arg, malloc) {
 }
 /**
 */
-export const Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad1A:4,Joypad1B:5,Joypad1Up:6,Joypad1Down:7,Joypad1Left:8,Joypad1Right:9,Joypad2A:10,Joypad2B:11,Joypad2Up:12,Joypad2Down:13,Joypad2Left:14,Joypad2Right:15, });
+module.exports.Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad1A:4,Joypad1B:5,Joypad1Up:6,Joypad1Down:7,Joypad1Left:8,Joypad1Right:9,Joypad2A:10,Joypad2B:11,Joypad2Up:12,Joypad2Down:13,Joypad2Left:14,Joypad2Right:15, });
 /**
 * `WasmNes` is an interface between user JavaScript code and
 * WebAssembly NES emulator. The following code is example
@@ -89,7 +91,7 @@ export const Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad
 * stepFrame();
 * ```
 */
-export class WasmNes {
+class WasmNes {
 
     static __wrap(ptr) {
         const obj = Object.create(WasmNes.prototype);
@@ -207,61 +209,17 @@ export class WasmNes {
         wasm.wasmnes_release_button(this.ptr, button);
     }
 }
+module.exports.WasmNes = WasmNes;
 
-async function load(module, imports) {
-    if (typeof Response === 'function' && module instanceof Response) {
+module.exports.__wbindgen_throw = function(arg0, arg1) {
+    throw new Error(getStringFromWasm0(arg0, arg1));
+};
 
-        if (typeof WebAssembly.instantiateStreaming === 'function') {
-            try {
-                return await WebAssembly.instantiateStreaming(module, imports);
+const path = require('path').join(__dirname, 'nes_rust_wasm_bg.wasm');
+const bytes = require('fs').readFileSync(path);
 
-            } catch (e) {
-                if (module.headers.get('Content-Type') != 'application/wasm') {
-                    console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e);
-
-                } else {
-                    throw e;
-                }
-            }
-        }
-
-        const bytes = await module.arrayBuffer();
-        return await WebAssembly.instantiate(bytes, imports);
-
-    } else {
-
-        const instance = await WebAssembly.instantiate(module, imports);
-
-        if (instance instanceof WebAssembly.Instance) {
-            return { instance, module };
-
-        } else {
-            return instance;
-        }
-    }
-}
-
-async function init(input) {
-    if (typeof input === 'undefined') {
-        input = import.meta.url.replace(/\.js$/, '_bg.wasm');
-    }
-    const imports = {};
-    imports.wbg = {};
-    imports.wbg.__wbindgen_throw = function(arg0, arg1) {
-        throw new Error(getStringFromWasm0(arg0, arg1));
-    };
-
-    if (typeof input === 'string' || (typeof Request === 'function' && input instanceof Request) || (typeof URL === 'function' && input instanceof URL)) {
-        input = fetch(input);
-    }
-
-    const { instance, module } = await load(await input, imports);
-
-    wasm = instance.exports;
-    init.__wbindgen_wasm_module = module;
-
-    return wasm;
-}
-
-export default init;
+const wasmModule = new WebAssembly.Module(bytes);
+const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
+wasm = wasmInstance.exports;
+module.exports.__wasm = wasm;
 

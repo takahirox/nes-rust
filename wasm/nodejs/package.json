@@ -1,0 +1,25 @@
+{
+  "name": "nes_rust_wasm",
+  "description": "NES emulator written in Rust and compiled to WebAssembly",
+  "author": "Takahiro <hogehoge@gachapin.jp>",
+  "version": "0.1.0",
+  "repository:": "https://github.com/takahirox/nes-rust.git",
+  "homepage": "https://github.com/takahirox/nes-rust/tree/master/wasm/nodejs",
+  "bugs": "https://github.com/takahirox/nes-rust/issues",
+  "files": [
+    "nes_rust_wasm_bg.d.ts",
+    "nes_rust_wasm_bg.wasm",
+    "nes_rust_wasm.js",
+    "nes_rust_wasm.d.ts"
+  ],
+  "main": "nes_rust_wasm.js",
+  "types": "nes_rust_wasm.d.ts",
+  "sideEffects": false,
+  "keywords": [
+	"NES",
+    "Nintendo",
+	"WASM",
+	"WebAssembly"
+  ],
+  "license": "MIT"
+}
