@@ -1,6 +1,5 @@
 use register::Register;
 use audio::Audio;
-use audio::BUFFER_CAPACITY;
 
 /*
  * Audio Processing Unit implementation. Consists of
@@ -29,7 +28,7 @@ pub struct Apu {
 	dmc_irq_active: bool,
 	pub irq_interrupted: bool,
 
-	audio: Box<Audio>
+	audio: Box<dyn Audio>
 }
 
 static LENGTH_TABLE: [u8; 32] = [
@@ -40,7 +39,7 @@ static LENGTH_TABLE: [u8; 32] = [
 ];
 
 impl Apu {
-	pub fn new(audio: Box<Audio>) -> Self {
+	pub fn new(audio: Box<dyn Audio>) -> Self {
 		Apu {
 			cycle: 0,
 			step: 0,
@@ -72,10 +71,8 @@ impl Apu {
 		self.audio.resume();
 	}
 
-	// For WASM
-
-	pub fn copy_sample_buffer(&mut self, sample_buffer: &mut [f32; BUFFER_CAPACITY]) {
-		self.audio.copy_sample_buffer(sample_buffer);
+	pub fn get_mut_audio(&mut self) -> &mut Box<dyn Audio> {
+		&mut self.audio
 	}
 
 	// Expects being called at CPU clock rate
@@ -341,7 +338,6 @@ struct ApuPulse {
 	length_counter: u8,
 
 	sweep_reload_flag: bool,
-	sweep_cycle: u16,
 	sweep_counter: u8
 }
 
@@ -374,7 +370,6 @@ impl ApuPulse {
 			envelope_decay_level_counter: 0,
 			length_counter: 0,
 			sweep_reload_flag: false,
-			sweep_cycle: 0,
 			sweep_counter: 0
 		}
 	}

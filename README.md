@@ -1,14 +1,18 @@
 # nes-rust
 
+[![Build Status](https://travis-ci.com/takahirox/nes-rust.svg?branch=master)](https://travis-ci.com/takahirox/nes-rust)
+[![Crate](https://img.shields.io/crates/v/nes_rust.svg)](https://crates.io/crates/nes_rust)
+[![npm version](https://badge.fury.io/js/nes_rust_wasm.svg)](https://badge.fury.io/js/nes_rust_wasm)
+
 nes-rust is a NES emulator written in Rust.
 
-[Online Singleplay Demo](https://takahirox.github.io/nes-rust/index.html)
+## Online Demos / Videos
 
-[Online Multiplay Demo](https://takahirox.github.io/nes-rust/multiplay.html) / [Video](https://twitter.com/superhoge/status/1205427421010247680)
+- [Online Singleplay Demo](https://takahirox.github.io/nes-rust/index.html)
+- [Online Multiplay Demo](https://takahirox.github.io/nes-rust/multiplay.html) / [Video](https://twitter.com/superhoge/status/1205427421010247680)
+- [Online VR Multiplay Demo](https://takahirox.github.io/nes-rust/vr.html) / [Video](https://twitter.com/superhoge/status/1209685614074875906)
 
-[Online VR Multiplay Demo](https://takahirox.github.io/nes-rust/vr.html) / [Video](https://twitter.com/superhoge/status/1209685614074875906)
-
-# Screenshots
+## Screenshots
 
 [nestest](http://wiki.nesdev.com/w/index.php/Emulator_tests)
 
@@ -18,35 +22,46 @@ nes-rust is a NES emulator written in Rust.
 
 ![Sgt. Helmet Training Day](./screenshots/Sgt_Helmet.png)
 
-# Features
+## Features
 
 - Audio support with SDL2 / WebAudio
 - WebAssembly support
 - Remote multiplay support with WebRTC
 
-# How to build and run
+## How to import into your Rust project
 
-## Standalone
+The emulator module is released at [crates.io](https://crates.io/crates/nes_rust
+). Add the following line into Cargo.toml of your Rust project.
 
-You need SDL2. Refer to [Rust-SDL2 Readme](https://github.com/Rust-SDL2/rust-sdl2#rust) for the detail.
+```
+[dependencies]
+nes_rust = "0.1.0"
+```
+
+Refer to [Document](https://docs.rs/nes_rust/0.1.0/nes_rust/struct.Nes.html) for the API.
+
+## How to build core library locally
 
 ```
 $ git clone https://github.com/takahirox/nes-rust.git
 $ cd nes-rust
-$ # install or setup SDL2
 $ cargo build --release
-$ cargo run --release path_to_rom
 ```
 
-## Web (WebAssembly)
+## How to run as desktop application
 
-You need wasm-bindgen client. Refer to [the document](https://rustwasm.github.io/docs/wasm-bindgen/) for the detail.
+Prerequirements
+- Install [Rust-SDL2](https://github.com/Rust-SDL2/rust-sdl2#rust)
 
 ```
-$ git clone https://github.com/takahirox/nes-rust.git
-$ cd nes-rust
-$ # install wasm-bindgen
-$ cargo build --release --lib --target wasm32-unknown-unknown
-$ wasm-bindgen ./target/wasm32-unknown-unknown/release/nes_rust.wasm --out-dir ./wasm/ --target web --no-typescript
-# Boot up local web server and access index.html via the server
+$ cd nes-rust/cli
+$ cargo run --release path_to_rom_file
 ```
+
+## How to import and use WebAssembly NES emulator in a web browser
+
+See [wasm/web](https://github.com/takahirox/nes-rust/tree/master/wasm/web)
+
+## How to install and use WebAssembly NES emulator npm package
+
+See [wasm/nodejs](https://github.com/takahirox/nes-rust/tree/master/wasm/nodejs)

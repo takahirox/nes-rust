@@ -1,6 +1,6 @@
 use register::Register;
 use memory::Memory;
-use rom::Rom;
+use rom::{HEADER_SIZE, Rom};
 use ppu::Ppu;
 use apu::Apu;
 use button;
@@ -9,25 +9,21 @@ use joypad::Joypad;
 use input::Input;
 use display::Display;
 use audio::Audio;
-use display::PIXELS_CAPACITY;
-use audio::BUFFER_CAPACITY;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 fn to_joypad_button(button: button::Button) -> joypad::Button {
 	match button {
-		button::Button::Joypad1_A |
-		button::Button::Joypad2_A => joypad::Button::A,
-		button::Button::Joypad1_B |
-		button::Button::Joypad2_B => joypad::Button::B,
-		button::Button::Joypad1_Up |
-		button::Button::Joypad2_Up => joypad::Button::Up,
-		button::Button::Joypad1_Down |
-		button::Button::Joypad2_Down => joypad::Button::Down,
-		button::Button::Joypad1_Left |
-		button::Button::Joypad2_Left => joypad::Button::Left,
-		button::Button::Joypad1_Right |
-		button::Button::Joypad2_Right => joypad::Button::Right,
+		button::Button::Joypad1A |
+		button::Button::Joypad2A => joypad::Button::A,
+		button::Button::Joypad1B |
+		button::Button::Joypad2B => joypad::Button::B,
+		button::Button::Joypad1Up |
+		button::Button::Joypad2Up => joypad::Button::Up,
+		button::Button::Joypad1Down |
+		button::Button::Joypad2Down => joypad::Button::Down,
+		button::Button::Joypad1Left |
+		button::Button::Joypad2Left => joypad::Button::Left,
+		button::Button::Joypad1Right |
+		button::Button::Joypad2Right => joypad::Button::Right,
 		button::Button::Start => joypad::Button::Start,
 		button::Button::Select => joypad::Button::Select,
 		_ => joypad::Button::A // dummy @TODO: Throw an error?
@@ -53,14 +49,14 @@ pub struct Cpu {
 	// manage additional stall cycles eg. DMA or branch success
 	stall_cycles: u16,
 
-	input: Box<Input>,
+	input: Box<dyn Input>,
 
 	// other devices
 	ppu: Ppu,
 	apu: Apu,
 	joypad1: Joypad,
 	joypad2: Joypad,
-	rom: Option<Rc<RefCell<Rom>>>
+	rom: Rom
 }
 
 // interrupts
@@ -1097,7 +1093,7 @@ fn operation(opc: u8) -> Operation {
 }
 
 impl Cpu {
-	pub fn new(input: Box<Input>, display: Box<Display>, audio: Box<Audio>) -> Self {
+	pub fn new(input: Box<dyn Input>, display: Box<dyn Display>, audio: Box<dyn Audio>) -> Self {
 		Cpu {
 			pc: Register::<u16>::new(),
 			sp: Register::<u8>::new(),
@@ -1112,13 +1108,12 @@ impl Cpu {
 			apu: Apu::new(audio),
 			joypad1: Joypad::new(),
 			joypad2: Joypad::new(),
-			rom: None
+			rom: Rom::new(vec![0; HEADER_SIZE]) // dummy
 		}
 	}
 
-	pub fn set_rom(&mut self, rom: Rc<RefCell<Rom>>) {
-		self.ppu.set_rom(rom.clone());
-		self.rom = Some(rom);
+	pub fn set_rom(&mut self, rom: Rom) {
+		self.rom = rom;
 	}
 
 	pub fn bootup(&mut self) {
@@ -1156,22 +1151,16 @@ impl Cpu {
 		self.p.set_i();
 	}
 
-	// For WASM 
-
-	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
-		self.ppu.copy_pixels(pixels);
+	pub fn get_ppu(&self) -> &Ppu {
+		&self.ppu
 	}
 
-	pub fn copy_sample_buffer(&mut self, buffer: &mut [f32; BUFFER_CAPACITY]) {
-		self.apu.copy_sample_buffer(buffer);
+	pub fn get_mut_apu(&mut self) -> &mut Apu {
+		&mut self.apu
 	}
 
-	pub fn press_button(&mut self, button: button::Button) {
-		self.input.press(button);
-	}
-
-	pub fn release_button(&mut self, button: button::Button) {
-		self.input.release(button);
+	pub fn get_mut_input(&mut self) -> &mut Box<dyn Input> {
+		&mut self.input
 	}
 
 	//
@@ -1179,7 +1168,7 @@ impl Cpu {
 	pub fn step(&mut self) {
 		let stall_cycles = self.step_internal();
 		for _i in 0..stall_cycles * 3 {
-			self.ppu.step();
+			self.ppu.step(&mut self.rom);
 		}
 		for _i in 0..stall_cycles {
 			// No reference to CPU from APU so detecting if APU DMC needs
@@ -1203,7 +1192,7 @@ impl Cpu {
 		self.handle_inputs();
 		// @TODO: More precise frame update detection?
 		let ppu_frame = self.ppu.frame;
-		while true {
+		loop {
 			self.step();
 			if ppu_frame != self.ppu.frame {
 				break;
@@ -1223,20 +1212,20 @@ impl Cpu {
 				},
 				button::Button::Select |
 				button::Button::Start |
-				button::Button::Joypad1_A |
-				button::Button::Joypad1_B |
-				button::Button::Joypad1_Up |
-				button::Button::Joypad1_Down |
-				button::Button::Joypad1_Left |
-				button::Button::Joypad1_Right => {
+				button::Button::Joypad1A |
+				button::Button::Joypad1B |
+				button::Button::Joypad1Up |
+				button::Button::Joypad1Down |
+				button::Button::Joypad1Left |
+				button::Button::Joypad1Right => {
 					self.joypad1.handle_input(to_joypad_button(button), event);
 				},
-				button::Button::Joypad2_A |
-				button::Button::Joypad2_B |
-				button::Button::Joypad2_Up |
-				button::Button::Joypad2_Down |
-				button::Button::Joypad2_Left |
-				button::Button::Joypad2_Right => {
+				button::Button::Joypad2A |
+				button::Button::Joypad2B |
+				button::Button::Joypad2Up |
+				button::Button::Joypad2Down |
+				button::Button::Joypad2Left |
+				button::Button::Joypad2Right => {
 					self.joypad2.handle_input(to_joypad_button(button), event);
 				}
 			}
@@ -1260,7 +1249,7 @@ impl Cpu {
 
 		let opc = self.fetch();
 		let op = self.decode(opc);
-		self.operate(&op, opc);
+		self.operate(&op);
 		let stall_cycles = self.stall_cycles;
 		self.stall_cycles = 0;
 		stall_cycles + op.cycle as u16
@@ -1287,9 +1276,9 @@ impl Cpu {
 		if flag {
 			// stall_cycle + 1 if branch succeeds
 			self.stall_cycles += 1;
-			let currentPage = self.pc.load() & 0xff00;
+			let current_page = self.pc.load() & 0xff00;
 			self.pc.add(result);
-			if currentPage != (self.pc.load() & 0xff00) {
+			if current_page != (self.pc.load() & 0xff00) {
 				// stall_cycle + 1 if across page
 				self.stall_cycles += 1;
 			}
@@ -1297,7 +1286,7 @@ impl Cpu {
 	}
 
 	// @TODO: Clean up if needed
-	fn operate(&mut self, op: &Operation, opc: u8) {
+	fn operate(&mut self, op: &Operation) {
 		match op.instruction_type {
 			InstructionTypes::ADC => {
 				let src1 = self.a.load();
@@ -1320,7 +1309,7 @@ impl Cpu {
 			InstructionTypes::AND => {
 				let src1 = self.a.load();
 				let src2 = self.load_with_addressing_mode(&op);
-				let result = (src1 as u16 & src2);
+				let result = (src1 as u16) & src2;
 				self.a.store(result as u8);
 				self.update_n(result);
 				self.update_z(result);
@@ -1349,7 +1338,7 @@ impl Cpu {
 			InstructionTypes::BIT => {
 				let src1 = self.a.load();
 				let src2 = self.load_with_addressing_mode(&op);
-				let result = (src1 as u16 & src2);
+				let result = (src1 as u16) & src2;
 				self.update_n(src2);
 				self.update_z(result);
 				if (src2 & 0x40) == 0 {
@@ -1446,7 +1435,7 @@ impl Cpu {
 			InstructionTypes::EOR => {
 				let src1 = self.a.load();
 				let src2 = self.load_with_addressing_mode(&op);
-				let result = (src1 as u16 ^ src2);
+				let result = (src1 as u16) ^ src2;
 				self.a.store(result as u8);
 				self.update_n(result);
 				self.update_z(result);
@@ -1547,7 +1536,7 @@ impl Cpu {
 			InstructionTypes::ORA => {
 				let src1 = self.a.load();
 				let src2 = self.load_with_addressing_mode(op);
-				let result = (src1 as u16 | src2);
+				let result = (src1 as u16) | src2;
 				self.a.store(result as u8);
 				self.update_n(result);
 				self.update_z(result);
@@ -1744,7 +1733,7 @@ impl Cpu {
 		// 0x2008 - 0x3FFF: Mirrors of 0x2000 - 0x2007 (repeats every 8 bytes)
 
 		if address >= 0x2000 && address < 0x4000 {
-			return self.ppu.load_register(address & 0x2007);
+			return self.ppu.load_register(address & 0x2007, &self.rom);
 		}
 
 		if address >= 0x4000 && address < 0x4014 {
@@ -1752,7 +1741,7 @@ impl Cpu {
 		}
 
 		if address == 0x4014 {
-			return self.ppu.load_register(address);
+			return self.ppu.load_register(address, &self.rom);
 		}
 
 		if address == 0x4015 {
@@ -1780,10 +1769,7 @@ impl Cpu {
 		}
 
 		if address >= 0x8000 {
-			return match self.rom {
-				Some(ref p) => p.borrow().load(address as u32),
-				None => 0
-			};
+			return self.rom.load(address as u32);
 		}
 
 		0 // dummy
@@ -1819,7 +1805,7 @@ impl Cpu {
 		// 0x2008 - 0x3FFF: Mirrors of 0x2000 - 0x2007 (repeats every 8 bytes)
 
 		if address >= 0x2000 && address < 0x4000 {
-			self.ppu.store_register(address & 0x2007, value);
+			self.ppu.store_register(address & 0x2007, value, &mut self.rom);
 		}
 
 		if address >= 0x4000 && address < 0x4014 {
@@ -1829,7 +1815,7 @@ impl Cpu {
 		// @TODO: clean up
 
 		if address == 0x4014 {
-			self.ppu.store_register(address, value);
+			self.ppu.store_register(address, value, &mut self.rom);
 
 			// DMA.
 			// Writing 0xXX will upload 256 bytes of data from CPU page
@@ -1837,7 +1823,7 @@ impl Cpu {
 			let offset = (value as u16) << 8;
 			for i in 0..256 {
 				let data = self.load(offset + i);
-				self.ppu.store_register(0x2004, data);
+				self.ppu.store_register(0x2004, data, &mut self.rom);
 			}
 
 			// @TODO
@@ -1872,23 +1858,20 @@ impl Cpu {
 		// 0x8000 - 0xFFFF: ROM
 
 		if address >= 0x8000 {
-			match self.rom {
-				Some(ref mut p) => p.borrow_mut().store(address as u32, value),
-				_ => {
-					// @TODO: Throw?
-				}
-			};
+			self.rom.store(address as u32, value);
 		}
 	}
 
 	pub fn interrupt(&mut self, interrupt_type: Interrupts) {
 		// @TODO: Optimize
 
-		if (match interrupt_type {
-			Interrupts::IRQ => self.p.is_i(),
-			_ => false
-		}) {
-			return;
+		match interrupt_type {
+			Interrupts::IRQ => {
+				if self.p.is_i() {
+					return;
+				}
+			},
+			_ => {}
 		}
 
 		match interrupt_type {

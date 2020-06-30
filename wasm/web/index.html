@@ -1,0 +1,306 @@
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <style>
+    canvas {
+      background: #000;
+      margin: 10px;
+    }
+    .actual {
+      width: 256;
+      height: 240;
+    }
+    .double {
+      width: 512;
+      height: 480;
+    }
+    .quadruple {
+      width: 1024;
+      height: 960;
+    }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import init, { WasmNes, Button } from './nes_rust_wasm.js';
+
+      const setupAudio = (wasm, nes) => {
+        const audioContext = AudioContext || webkitAudioContext;
+
+        if (audioContext === undefined) {
+          throw new Error('This browser seems not to support AudioContext.');
+        }
+
+        const bufferLength = 4096;
+        const context = new audioContext({sampleRate: 44100});
+        const scriptProcessor = context.createScriptProcessor(bufferLength, 0, 1);
+
+        scriptProcessor.onaudioprocess = e => {
+          const data = e.outputBuffer.getChannelData(0);
+          nes.update_sample_buffer(data);
+          // Adjust volume
+          for (let i = 0; i < data.length; i++) {
+            data[i] *= 0.25;
+          }
+        };
+
+        scriptProcessor.connect(context.destination);
+      };
+
+      const start = romArrayBuffer => {
+        // @TODO: Call init beforehand
+        init()
+          .then(wasm => run(wasm, new Uint8Array(romArrayBuffer)))
+          .catch(error => console.error(error));
+      };
+
+      const run = (wasm, romContentArray) => {
+        const width = 256;
+        const height = 240;
+        const canvas = document.getElementById('nesCanvas');
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.createImageData(width, height);
+        const pixels = new Uint8Array(imageData.data.buffer);
+        const nes = WasmNes.new();
+        nes.set_rom(romContentArray);
+        setupAudio(wasm, nes);
+        nes.bootup();
+
+        // FPS counter
+
+        let totalElapsedTime = 0.0;
+        let previousTime = performance.now();
+        let frameCount = 0;
+        const fpsSpan = document.getElementById('fpsSpan');
+
+        const countFps = () => {
+          frameCount++;
+          const currentTime = performance.now();
+          const elapsedTime = currentTime - previousTime;
+          totalElapsedTime += elapsedTime;
+          previousTime = currentTime;
+          if ((frameCount % 60) === 0) {
+            fpsSpan.textContent = (1000.0 / (totalElapsedTime / 60)).toFixed(2);
+            totalElapsedTime = 0.0;
+            frameCount = 0;
+          }
+        }
+
+        // animation frame loop
+
+        const stepFrame = () => {
+          requestAnimationFrame(stepFrame);
+          countFps();
+          nes.step_frame();
+          nes.update_pixels(pixels);
+          ctx.putImageData(imageData, 0, 0);
+        };
+
+        // joypad event listener setup
+
+        // @TODO: Mapping should be configurable
+        const getButton = keyCode => {
+          switch (keyCode) {
+            case 32: // space
+              return Button.Start;
+            case 37: // Left
+              return Button.Joypad1Left;
+            case 38: // Up
+              return Button.Joypad1Up;
+            case 39: // Right
+              return Button.Joypad1Right;
+            case 40: // Down
+              return Button.Joypad1Down;
+            case 50: // 2
+              return Button.Joypad2Down;
+            case 52: // 4
+              return Button.Joypad2Left;
+            case 54: // 6
+              return Button.Joypad2Right;
+            case 56: // 8
+              return Button.Joypad2Up;
+            case 65: // A
+              return Button.Joypad1A;
+            case 66: // B
+              return Button.Joypad1B;
+            case 82: // R
+              return Button.Reset;
+            case 83: // S
+              return Button.Select;
+            case 88: // X
+              return Button.Joypad2A;
+            case 90: // Z
+              return Button.Joypad2B;
+            default:
+              return null; 
+          }
+        };
+
+        window.addEventListener('keydown', event => {
+          const button = getButton(event.keyCode);
+          if (button === null) {
+            return;
+          }
+          nes.press_button(button);
+          event.preventDefault();
+        }, false);
+
+        window.addEventListener('keyup', event => {
+          const button = getButton(event.keyCode);
+          if (button === null) {
+            return;
+          }
+          nes.release_button(button);
+          event.preventDefault();
+        }, false);
+
+        stepFrame();
+      };
+
+      // rom load
+
+      let romSelected = false;
+
+      document.getElementById('romSelect').addEventListener('change', event => {
+        if (romSelected) return;
+        romSelected = true;
+        const select = event.target;
+        const option = select.selectedOptions[0];
+        const filename = option.value;
+        if (!filename) {
+          return;
+        }
+        select.disabled = true; // @TODO: Reset Nes instead
+        fetch('../../roms/' + filename)
+          .then(result => result.arrayBuffer())
+          .then(start)
+          .catch(error => console.error(error));
+      });
+
+      window.addEventListener('dragover', event => {
+        event.preventDefault();
+      }, false);
+
+      window.addEventListener('drop', event => {
+        event.preventDefault();
+        if (romSelected) return;
+        romSelected = true;
+        document.getElementById('romSelect').disabled = true; // @TODO: Reset Nes instead
+        const reader = new FileReader();
+        reader.onload = e => {
+          start(e.target.result);
+        };
+        reader.onerror = e => {
+          console.error(e);
+        };
+        reader.readAsArrayBuffer(event.dataTransfer.files[0]);
+      }, false);
+
+      // screen size
+
+      document.getElementById('screenSizeSelect').addEventListener('change', event => {
+        const select = event.target;
+        const option = select.selectedOptions[0];
+        const className = option.value;
+        if (!className) {
+          return;
+        }
+        const canvas = document.getElementById('nesCanvas');
+        for (const name of ['actual', 'double', 'quadruple']) {
+          if (name === className) {
+            canvas.classList.add(name);
+          } else {
+            canvas.classList.remove(name);
+          }
+        }
+      });
+    </script>
+    <p><a href="https://github.com/takahirox/nes-rust">NES emulator in Rust</a></p>
+    <div>
+      <select id="romSelect">
+        <option value="" selected>-- select rom --</option>
+        <option value="bingo.nes">GNOME vs. KDE</option>
+        <option value="mguard.nes">Meteo Guard</option>
+        <option value="nestest.nes">nestest</option>
+        <option value="pong1k.nes">Pong 1k2p</option>
+        <option value="Sgt. Helmet - Training Day (2013)(The Mojon Twins)[!].nes">Sgt. Helmet</option>
+        <option value="The Invasion.nes">The Invasion</option>
+      </select>
+      or Drag and Drop your own rom file
+    </div>
+    <div>
+      <canvas id="nesCanvas" width="256" height="240"></canvas>
+    </div>
+    <div>
+      <select id="screenSizeSelect">
+        <option value="actual" selected>256x240</optioin>
+        <option value="double">512x480</optioin>
+        <option value="quadruple">1024x960</optioin>
+      </select>
+      <span id="fpsSpan">--.--</span> fps
+    </div>
+    <div>
+      <table>
+        <tr>
+          <th></th>
+          <th>Player 1</th>
+          <th>Player 2</th>
+        </tr>
+        <tr>
+          <td>Down</td>
+          <td>Down</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>Left</td>
+          <td>Left</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td>Right</td>
+          <td>Right</td>
+          <td>6</td>
+        </tr>
+        <tr>
+          <td>Up</td>
+          <td>Up</td>
+          <td>8</td>
+        </tr>
+        <tr>
+          <td>A</td>
+          <td>A</td>
+          <td>X</td>
+        </tr>
+        <tr>
+          <td>B</td>
+          <td>B</td>
+          <td>Z</td>
+        </tr>
+        <tr>
+          <td>Start</td>
+          <td>Space</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Select</td>
+          <td>S</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Reset</td>
+          <td>R</td>
+          <td>-</td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <p>NES Roms Copyright</p>
+      <ul>
+        <li><a href="https://wiki.nesdev.com/w/index.php/Emulator_tests">nestest</a></li>
+        <li><a href="https://wiki.nesdev.com/w/index.php/Projects#stuff_by_Damian_Yerrick">GNOME vs. KDE</a></li>
+        <li><a href="http://slydogstudios.org/">Meteo Guard, Pong 1k2p, The Invasion</a></li>
+        <li><a href="http://www.mojontwins.com/juegos_mojonos/sgt-helmet-training-day-nes/">Sgt. Helmet Training Day</a></li>
+      </ul>
+    </div>
+  </body>
+</html>

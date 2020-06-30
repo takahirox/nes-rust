@@ -3,9 +3,6 @@ use memory::Memory;
 use rom::Rom;
 use rom::Mirrorings;
 use display::Display;
-use display::PIXELS_CAPACITY;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 /**
  * RP2A03
@@ -124,9 +121,7 @@ pub struct Ppu {
 
 	// -- 
 
-	display: Box<Display>,
-
-	rom: Option<Rc<RefCell<Rom>>>,
+	display: Box<dyn Display>,
 
 	pub nmi_interrupted: bool,
 	pub irq_interrupted: bool
@@ -200,7 +195,7 @@ static PALETTES: [u32; 0x40] = [
 ];
 
 impl Ppu {
-	pub fn new(display: Box<Display>) -> Self {
+	pub fn new(display: Box<dyn Display>) -> Self {
 		Ppu {
 			frame: 0,
 			cycle: 0,
@@ -239,14 +234,9 @@ impl Ppu {
 			pattern_table_low: Register::<u16>::new(),
 			pattern_table_high: Register::<u16>::new(),
 			display: display,
-			rom: None,
 			nmi_interrupted: false,
 			irq_interrupted: false
 		}
-	}
-
-	pub fn set_rom(&mut self, rom: Rc<RefCell<Rom>>) {
-		self.rom = Some(rom);
 	}
 
 	pub fn bootup(&mut self) {
@@ -266,21 +256,17 @@ impl Ppu {
 		self.cycle = 0;
 	}
 
-	pub fn copy_pixels(&self, pixels: &mut [u8; PIXELS_CAPACITY]) {
-		self.display.copy_pixels(pixels);
-	}
-
-	pub fn step(&mut self) {
-		self.render_pixel();
+	pub fn step(&mut self, rom: &mut Rom) {
+		self.render_pixel(rom);
 		self.shift_registers();
-		self.fetch();
-		self.evaluate_sprites();
-		self.update_flags();
+		self.fetch(rom);
+		self.evaluate_sprites(rom);
+		self.update_flags(rom);
 		self.countup_scroll_counters();
 		self.countup_cycle();
 	}
 
-	pub fn load_register(&mut self, address: u16) -> u8 {
+	pub fn load_register(&mut self, address: u16, rom: &Rom) -> u8 {
 		match address {
 			// ppustatus load
 			0x2002 => {
@@ -326,7 +312,7 @@ impl Ppu {
 				// They work differently depending on the reading address.
 				// 0x0000-0x3EFF: Update the buffer after returning the content of the buffer
 				// 0x3F00-0x3FFF: Immediately update the buffer before returning the content of the buffer
-				let value = self.load(self.current_vram_address);
+				let value = self.load(self.current_vram_address, rom);
 				let return_value = match self.current_vram_address {
 					0..=0x3EFF => self.vram_read_buffer,
 					_ => value
@@ -344,7 +330,7 @@ impl Ppu {
 		}
 	}
 
-	pub fn store_register(&mut self, address: u16, value: u8) {
+	pub fn store_register(&mut self, address: u16, value: u8, rom: &mut Rom) {
 		// Writing to any PPU port(register) from CPU fills the latch (data_bus).
 		self.data_bus = value;
 
@@ -360,14 +346,14 @@ impl Ppu {
 				//	return;
 				//}
 
-				let previousNmiEnabled = self.ppuctrl.is_nmi_enabled();
+				let previous_nmi_enabled = self.ppuctrl.is_nmi_enabled();
 				self.ppuctrl.store(value);
 
 				// Immediately generate an NMI if the PPU is currently
 				// in vertical blank, PPUSTATUS vblank flag is still set,
 				// and changing the NMI flag from 0 to 1
 				if self.ppustatus.is_vblank() &&
-					!previousNmiEnabled &&
+					!previous_nmi_enabled &&
 					self.ppuctrl.is_nmi_enabled() {
 					self.nmi_interrupted = true;
 				}
@@ -433,7 +419,7 @@ impl Ppu {
 			// ppudata store
 			0x2007 => {
 				self.ppudata.store(value);
-				self.store(self.current_vram_address, value);
+				self.store(self.current_vram_address, value, rom);
 				// Accessing ppudata increments vram_address
 				self.increment_vram_address();
 			},
@@ -446,31 +432,31 @@ impl Ppu {
 		}
 	}
 
-	pub fn load(&self, mut address: u16) -> u8 {
+	fn load(&self, mut address: u16, rom: &Rom) -> u8 {
 		address = address & 0x3FFF;  // just in case
 
 		// 0x0000 - 0x1FFF is mapped with cartridge's CHR-ROM if exists.
 		// Otherwise load from VRAM.
 
-		match address < 0x2000 && self.has_chr_rom() {
-			true => self.load_from_rom(address),
-			false => self.vram.load(self.convert_vram_address(address) as u32)
+		match address < 0x2000 && rom.has_chr_rom() {
+			true => rom.load(address as u32),
+			false => self.vram.load(self.convert_vram_address(address, rom) as u32)
 		}
 	}
 
-	pub fn store(&mut self, mut address: u16, value: u8) {
+	fn store(&mut self, mut address: u16, value: u8, rom: &mut Rom) {
 		address = address & 0x3FFF;  // just in case
 
 		// 0x0000 - 0x1FFF is mapped with cartridge's CHR-ROM if exists.
 		// Otherwise store to VRAM.
 
-		match address < 0x2000 && self.has_chr_rom() {
-			true => self.store_to_rom(address, value),
-			false => self.vram.store(self.convert_vram_address(address) as u32, value)
+		match address < 0x2000 && rom.has_chr_rom() {
+			true => rom.store(address as u32, value),
+			false => self.vram.store(self.convert_vram_address(address, rom) as u32, value)
 		};
 	}
 
-	fn convert_vram_address(&self, address: u16) -> u16 {
+	fn convert_vram_address(&self, address: u16, rom: &Rom) -> u16 {
 		// 0x0000 - 0x0FFF: pattern table 0
 		// 0x1000 - 0x1FFF: pattern table 1
 		// 0x2000 - 0x23FF: nametable 0
@@ -483,7 +469,7 @@ impl Ppu {
 
 		match address {
 			0..=0x1FFF => address,
-			0x2000..=0x3EFF => self.get_name_table_address_with_mirroring(address & 0x2FFF),
+			0x2000..=0x3EFF => self.get_name_table_address_with_mirroring(address & 0x2FFF, rom),
 			_ /* 0x3F00..=0x3FFF */ => {
 				// Addresses for palette
 				// 0x3F10/0x3F14/0x3F18/0x3F1C are mirrors of
@@ -499,7 +485,7 @@ impl Ppu {
 		}
 	}
 
-	fn render_pixel(&mut self) {
+	fn render_pixel(&mut self, rom: &Rom) {
 		// Note: this comparison order is for performance.
 		if self.cycle >= 257 || self.scanline >= 240 || self.cycle == 0 {
 			return;
@@ -545,7 +531,7 @@ impl Ppu {
 			}
 		};
 
-		let c = self.get_emphasis_color(self.load_palette(self.load(palette_address)));
+		let c = self.get_emphasis_color(self.load_palette(self.load(palette_address, rom)));
 
 		// Sprite zero hit test.
 		// Set zero hit flag when a nonzero pixel of sprite 0 overlaps
@@ -588,7 +574,7 @@ impl Ppu {
 		}
 	}
 
-	fn fetch(&mut self) {
+	fn fetch(&mut self, rom: &Rom) {
 		// No fetch during post-rendering scanline 240 and vblank interval 241-260
 		if self.scanline >= 240 && self.scanline <= 260 {
 			return;
@@ -635,21 +621,21 @@ impl Ppu {
 
 		match (self.cycle - 1) % 8 {
 			0 => {
-				self.fetch_name_table();
+				self.fetch_name_table(rom);
 				self.name_table.store(self.name_table_latch);
 				self.attribute_table_low.store_lower_byte(self.attribute_table_low_latch);
 				self.attribute_table_high.store_lower_byte(self.attribute_table_high_latch);
 				self.pattern_table_low.store_lower_byte(self.pattern_table_low_latch);
 				self.pattern_table_high.store_lower_byte(self.pattern_table_high_latch);
 			},
-			2 => self.fetch_attribute_table(),
-			4 => self.fetch_pattern_table_low(),
-			6 => self.fetch_pattern_table_high(),
+			2 => self.fetch_attribute_table(rom),
+			4 => self.fetch_pattern_table_low(rom),
+			6 => self.fetch_pattern_table_high(rom),
 			_ => {}
 		};
 	}
 
-	fn fetch_name_table(&mut self) {
+	fn fetch_name_table(&mut self, rom: &Rom) {
 		// A nametable is a 1024 byte area of memory used by the PPU to lay out backgrounds.
 		// Each byte in the nametable controls one 8x8 pixel character cell, and each nametable
 		// has 30 rows of 32 tiles each, for 960 (0x3C0) bytes; the rest is used by each nametable's
@@ -667,10 +653,10 @@ impl Ppu {
 		// Here fetches a tile of a nametable.
 
 		// address is from http://wiki.nesdev.com/w/index.php/PPU_scrolling
-		self.name_table_latch = self.load(0x2000 | (self.current_vram_address & 0x0FFF));
+		self.name_table_latch = self.load(0x2000 | (self.current_vram_address & 0x0FFF), rom);
 	}
 
-	fn fetch_attribute_table(&mut self) {
+	fn fetch_attribute_table(&mut self, rom: &Rom) {
 		// @TODO: Implement properly
 
 		// The attribute table is a 64-byte array at the end of each nametable
@@ -693,7 +679,7 @@ impl Ppu {
 		// 5-3: high 3bits of coarse y
 		// 2-0: high 3bits of coarse x
 		// From http://wiki.nesdev.com/w/index.php/PPU_scrolling
-		let byte = self.load(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07));
+		let byte = self.load(0x23C0 | (v & 0x0C00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07), rom);
 
 		// byte includes four two bits
 		// 7-6: bottom right
@@ -732,21 +718,21 @@ impl Ppu {
 		};
 	}
 
-	fn fetch_pattern_table_low(&mut self) {
+	fn fetch_pattern_table_low(&mut self, rom: &Rom) {
 		let fine_scroll_y = (self.current_vram_address >> 12) & 0x7;
 		let index = self.ppuctrl.background_pattern_table_base_address() +
 			((self.name_table.load() as u16) << 4) + fine_scroll_y;
-		self.pattern_table_low_latch = self.load(index);
+		self.pattern_table_low_latch = self.load(index, rom);
 	}
 
-	fn fetch_pattern_table_high(&mut self) {
+	fn fetch_pattern_table_high(&mut self, rom: &Rom) {
 		let fine_scroll_y = (self.current_vram_address >> 12) & 0x7;
 		let index = self.ppuctrl.background_pattern_table_base_address() +
 			((self.name_table.load() as u16) << 4) + fine_scroll_y;
-		self.pattern_table_high_latch = self.load(index + 0x8);
+		self.pattern_table_high_latch = self.load(index + 0x8, rom);
 	}
 
-	fn update_flags(&mut self) {
+	fn update_flags(&mut self, rom: &mut Rom) {
 		if self.cycle == 1 {
 			if self.scanline == 241 {
 				// set vblank and occur NMI at cycle 1 in scanline 241
@@ -803,16 +789,11 @@ impl Ppu {
 		// @TODO: check this driving IRQ counter for MMC3Mapper timing is correct
 		// @TODO: This is MMC3Mapper specific. Should this be here?
 
-		match &self.rom {
-			Some(p) => {
-				if self.cycle == 340 && self.scanline <= 240 &&
-					self.ppumask.is_background_visible() &&
-					p.borrow_mut().irq_interrupted() {
-					self.irq_interrupted = true
-				}
-			},
-			_ => {}
-		};
+		if self.cycle == 340 && self.scanline <= 240 &&
+			self.ppumask.is_background_visible() &&
+			rom.irq_interrupted() {
+				self.irq_interrupted = true
+		}
 	}
 
 	fn countup_scroll_counters(&mut self) {
@@ -908,7 +889,7 @@ impl Ppu {
 		self.ppuaddr.store(self.current_vram_address as u8 & 0xFF);
 	}
 
-	fn evaluate_sprites(&mut self) {
+	fn evaluate_sprites(&mut self, rom: &Rom) {
 		// oamaddr is set to 0 during cycle 257-320 of the pre-render and visible scanlines.
 		// @TODO: Optimize
 		if (self.scanline < 240 || self.scanline == 261) &&
@@ -936,11 +917,11 @@ impl Ppu {
 		} else if self.cycle == 257 {
 			// Evaluate at a time at cycle 257 due to performance
 			// and simplicity so far
-			self.process_sprite_pixels();
+			self.process_sprite_pixels(rom);
 		}
 	}
 
-	fn process_sprite_pixels(&mut self) {
+	fn process_sprite_pixels(&mut self, rom: &Rom) {
 		for i in 0..self.sprite_availables.len() {
 			self.sprite_availables[i] = false;
 		}
@@ -980,7 +961,7 @@ impl Ppu {
 						false => j
 					};
 					// pattern table holds the lowest two bits of palette memory address
-					let lsb = self.get_pattern_table_element_for_sprite(&s, x_in_sprite, y_in_sprite, height) as u16;
+					let lsb = self.get_pattern_table_element_for_sprite(&s, x_in_sprite, y_in_sprite, height, rom) as u16;
 					// the lowest two 0 bits means transparent (=no sprite pixel)
 					if lsb != 0 {
 						self.sprite_availables[x as usize] = true;
@@ -996,9 +977,9 @@ impl Ppu {
 		}
 	}
 
-	fn get_name_table_address_with_mirroring(&self, address: u16) -> u16 {
+	fn get_name_table_address_with_mirroring(&self, address: u16, rom: &Rom) -> u16 {
 		let name_table_address = address & 0x2C00;
-		(address & 0x3FF) | match self.mirroring_type() {
+		(address & 0x3FF) | match rom.mirroring_type() {
 			Mirrorings::SingleScreen => 0x2000,
 			Mirrorings::Horizontal => match name_table_address {
 				0x2000 => 0x2000,
@@ -1016,7 +997,7 @@ impl Ppu {
 		}
 	}
 
-	fn get_pattern_table_element_for_sprite(&self, s: &Sprite, x_in_sprite: u8, y_in_sprite: u8, height: u8) -> u8 {
+	fn get_pattern_table_element_for_sprite(&self, s: &Sprite, x_in_sprite: u8, y_in_sprite: u8, height: u8, rom: &Rom) -> u8 {
 		// Get an element from pattern table consisting of the lowest two bits
 		// of palette memory address for sprites
 
@@ -1049,8 +1030,8 @@ impl Ppu {
 		// Each tile has 16bytes (8x2 rows)
 		// The first 8bytes in a tile are for 0-bit,
 		// while the second 8bytes are for 1-bit of palette memory address
-		let lower_bits = self.load(address);
-		let higher_bits = self.load(address + 8);
+		let lower_bits = self.load(address, rom);
+		let higher_bits = self.load(address + 8, rom);
 		let pos = 7 - x_in_sprite; // xxx_bits[7:0] corresponds to x_in_sprite[0:7] 
 		(((higher_bits >> pos) & 1) << 1) | ((lower_bits >> pos) & 1)
 	}
@@ -1080,32 +1061,8 @@ impl Ppu {
 		c
 	}
 
-	fn has_chr_rom(&self) -> bool {
-		match self.rom {
-			Some(ref p) => p.borrow().has_chr_rom(),
-			_ => false // @TODO: Throw error?
-		}
-	}
-
-	fn mirroring_type(&self) -> Mirrorings {
-		match self.rom {
-			Some(ref p) => p.borrow().mirroring_type(),
-			_ => Mirrorings::SingleScreen // @TODO: Throw errror?
-		}
-	}
-
-	fn load_from_rom(&self, address: u16) -> u8 {
-		match self.rom {
-			Some(ref p) => p.borrow().load(address as u32),
-			None => 0 // @TODO: Throw error?
-		}
-	}
-
-	fn store_to_rom(&self, address: u16, value: u8) {
-		match self.rom {
-			Some(ref p) => p.borrow_mut().store(address as u32, value),
-			None => {} // @TODO: Throw error?
-		};
+	pub fn get_display(&self) -> &Box<dyn Display> {
+		&self.display
 	}
 }
 
@@ -1124,7 +1081,7 @@ impl PpuControlRegister {
 		}
 	}
 
-	fn load(&self) -> u8 {
+	fn _load(&self) -> u8 {
 		self.register.load()
 	}
 
@@ -1180,7 +1137,7 @@ impl PpuControlRegister {
 
 	// Bit 0-1. Base nametable address
 	// -- 0: 0x2000, 1: 0x2400, 2: 0x2800, 3: 0x2C00
-	fn base_name_table_address(&self) -> u16 {
+	fn _base_name_table_address(&self) -> u16 {
 		match self.register.load_bits(0, 2) {
 			0 => 0x2000,
 			1 => 0x2400,
@@ -1204,7 +1161,7 @@ impl PpuMaskRegister {
 		}
 	}
 
-	fn load(&self) -> u8 {
+	fn _load(&self) -> u8 {
 		self.register.load()
 	}
 

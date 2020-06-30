@@ -1,29 +1,17 @@
-mod register;
-mod memory;
-mod mapper;
-mod rom;
-mod cpu;
-mod ppu;
-mod apu;
-mod button;
-mod joypad;
-mod input;
-mod display;
-mod audio;
-mod nes;
+extern crate nes_rust;
+extern crate sdl2;
 
 mod sdl2_input;
 mod sdl2_display;
 mod sdl2_audio;
-extern crate sdl2;
 
-use std::env;
-use nes::Nes;
-use rom::Rom;
 use std::fs::File;
 use std::io::Read;
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::time::Duration;
+use std::env;
+
+use nes_rust::Nes;
+use nes_rust::rom::Rom;
 
 use sdl2_input::Sdl2Input;
 use sdl2_display::Sdl2Display;
@@ -41,8 +29,8 @@ fn main() -> std::io::Result<()> {
 	let mut file = File::open(filename)?;
 	let mut contents = vec![];
 	file.read_to_end(&mut contents)?;
-	let rom = Rc::new(RefCell::new(Rom::new(contents)));
-	assert_eq!(rom.borrow().valid(), true);
+	let rom = Rom::new(contents);
+	assert_eq!(rom.valid(), true);
 
 	let sdl = sdl2::init().unwrap();
 	let event_pump = sdl.event_pump().unwrap();
@@ -52,6 +40,11 @@ fn main() -> std::io::Result<()> {
 	let audio = Box::new(Sdl2Audio::new(audio_subsystem));
 	let mut nes = Nes::new(input, display, audio);
 	nes.set_rom(rom);
-	nes.run();
-	Ok(())
+
+	nes.bootup();
+	loop {
+		nes.step_frame();
+		// @TODO: Fix sleep duration time
+		std::thread::sleep(Duration::from_millis(1));
+	}
 }

@@ -4,7 +4,7 @@ use rom::RomHeader;
 use register::Register;
 
 impl MapperFactory {
-	pub fn create(header: &RomHeader) -> Box<Mapper> {
+	pub fn create(header: &RomHeader) -> Box<dyn Mapper> {
 		match header.mapper_num() {
 			0 => Box::new(NRomMapper::new(header)),
 			1 => Box::new(MMC1Mapper::new(header)),
@@ -71,7 +71,7 @@ impl Mapper for NRomMapper {
 	/**
 	 * Nothing to do
 	 */
-	fn store(&mut self, address: u32, value: u8) {
+	fn store(&mut self, _address: u32, _value: u8) {
 		// throw exception?
 	}
 
@@ -116,7 +116,7 @@ impl MMC1Mapper {
 
 impl Mapper for MMC1Mapper {
 	fn map(&self, address: u32) -> u32 {
-		let mut bank = 0 as u32;
+		let bank: u32;
 		let mut offset = address & 0x3FFF;
 		let bank_num = self.prg_bank_register.load() as u32 & 0x0F;
 
@@ -146,7 +146,7 @@ impl Mapper for MMC1Mapper {
 	}
 
 	fn map_for_chr_rom(&self, address: u32) -> u32 {
-		let mut bank = 0 as u32;
+		let bank: u32;
 		let mut offset = address & 0x0FFF;
 		if self.control_register.load_bit(4) == 0 {
 			// switch 8KB at a time
@@ -232,7 +232,7 @@ impl Mapper for UNRomMapper {
 		address
 	}
 
-	fn store(&mut self, address: u32, value: u8) {
+	fn store(&mut self, _address: u32, value: u8) {
 		self.register.store(value & 0xF);
 	}
 
@@ -270,7 +270,7 @@ impl Mapper for CNRomMapper {
 		self.register.load() as u32 * 0x2000 + (address & 0x1FFF)
 	}
 
-	fn store(&mut self, address: u32, value: u8) {
+	fn store(&mut self, _address: u32, value: u8) {
 		self.register.store(value & 0xF);
 	}
 
