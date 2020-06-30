@@ -33,7 +33,7 @@ Below is the example code to import and use them.
     scriptProcessor.connect(context.destination);
 
     // Set up screen resources
-	const width = 256;
+    const width = 256;
     const height = 240;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
