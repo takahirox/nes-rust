@@ -28,6 +28,8 @@ const runFrame = () => {
   nes.update_pixels(pixels);
   // Render pixels
 };
+
+nes.bootup();
 runFrame();
 ```
 
