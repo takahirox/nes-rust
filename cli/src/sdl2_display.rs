@@ -65,7 +65,7 @@ impl Display for Sdl2Display {
 		self.pixels[(base_index + 0) as usize] = b;
 	}
 
-	fn update_screen(&mut self) {
+	fn vblank(&mut self) {
 		self.texture
 			.update(None, &self.pixels, SCREEN_WIDTH as usize * PIXEL_BYTES as usize)
 			.unwrap();

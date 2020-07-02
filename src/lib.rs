@@ -6,10 +6,13 @@ pub mod rom;
 pub mod memory;
 pub mod mapper;
 pub mod button;
-pub mod input;
 pub mod joypad;
+pub mod input;
 pub mod audio;
 pub mod display;
+pub mod default_input;
+pub mod default_audio;
+pub mod default_display;
 
 use cpu::Cpu;
 use rom::Rom;

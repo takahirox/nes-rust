@@ -1,4 +1,4 @@
-use nes_rust::display::{
+use display::{
 	Display,
 	PIXEL_BYTES,
 	PIXELS_CAPACITY,
@@ -6,19 +6,19 @@ use nes_rust::display::{
 	SCREEN_WIDTH
 };
 
-pub struct WasmDisplay {
+pub struct DefaultDisplay {
 	pixels: Vec<u8>
 }
 
-impl WasmDisplay {
+impl DefaultDisplay {
 	pub fn new() -> Self {
-		WasmDisplay {
+		DefaultDisplay {
 			pixels: vec![0; PIXELS_CAPACITY]
 		}
 	}
 }
 
-impl Display for WasmDisplay {
+impl Display for DefaultDisplay {
 	fn render_pixel(&mut self, x: u16, y: u16, c: u32) {
 		let r = ((c >> 16) & 0xff) as u8;
 		let g = ((c >> 8) & 0xff) as u8;
@@ -30,7 +30,7 @@ impl Display for WasmDisplay {
 		self.pixels[(base_index + 0) as usize] = b;
 	}
 
-	fn update_screen(&mut self) {
+	fn vblank(&mut self) {
 	}
 
 	fn copy_to_rgba_pixels(&self, pixels: &mut [u8]) {
