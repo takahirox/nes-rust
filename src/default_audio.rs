@@ -1,14 +1,14 @@
-use nes_rust::audio::{Audio, BUFFER_CAPACITY};
+use audio::{Audio, BUFFER_CAPACITY};
 
-pub struct WasmAudio {
+pub struct DefaultAudio {
 	buffer_index: usize,
 	buffer: [f32; BUFFER_CAPACITY],
 	previous_value: f32
 }
 
-impl WasmAudio {
+impl DefaultAudio {
 	pub fn new() -> Self {
-		WasmAudio {
+		DefaultAudio {
 			buffer_index: 0,
 			buffer: [0.0; BUFFER_CAPACITY],
 			previous_value: 0.0
@@ -16,10 +16,7 @@ impl WasmAudio {
 	}
 }
 
-impl Audio for WasmAudio {
-	fn resume(&self) {
-	}
-
+impl Audio for DefaultAudio {
 	fn push(&mut self, value: f32) {
 		if self.buffer_index >= BUFFER_CAPACITY {
 			return;

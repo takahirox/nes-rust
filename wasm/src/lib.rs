@@ -1,19 +1,14 @@
 extern crate wasm_bindgen;
 extern crate nes_rust;
 
-mod wasm_audio;
-mod wasm_display;
-mod wasm_input;
-
 use wasm_bindgen::prelude::*;
 
 use nes_rust::Nes;
 use nes_rust::rom::Rom;
 use nes_rust::button;
-
-use wasm_audio::WasmAudio;
-use wasm_display::WasmDisplay;
-use wasm_input::WasmInput;
+use nes_rust::default_input::DefaultInput;
+use nes_rust::default_audio::DefaultAudio;
+use nes_rust::default_display::DefaultDisplay;
 
 // @TODO: Reuse button::Button instead of defining Button here
 
@@ -111,9 +106,9 @@ pub struct WasmNes {
 impl WasmNes {
 	/// Creates a `WasmNes`
 	pub fn new() -> Self {
-		let input = Box::new(WasmInput::new());
-		let display = Box::new(WasmDisplay::new());
-		let audio = Box::new(WasmAudio::new());
+		let input = Box::new(DefaultInput::new());
+		let display = Box::new(DefaultDisplay::new());
+		let audio = Box::new(DefaultAudio::new());
 		let nes = Nes::new(input, display, audio);
 		WasmNes {
 			nes: nes

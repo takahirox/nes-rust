@@ -67,10 +67,6 @@ impl Apu {
 		// @TODO: Implement properly
 	}
 
-	pub fn resume_audio(&mut self) {
-		self.audio.resume();
-	}
-
 	pub fn get_mut_audio(&mut self) -> &mut Box<dyn Audio> {
 		&mut self.audio
 	}

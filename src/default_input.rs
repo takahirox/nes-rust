@@ -1,21 +1,21 @@
 use std::collections::VecDeque;
 
-use nes_rust::input::Input;
-use nes_rust::button;
+use input::Input;
+use button;
 
-pub struct WasmInput {
+pub struct DefaultInput {
 	events: VecDeque<(button::Button, button::Event)>
 }
 
-impl WasmInput {
+impl DefaultInput {
 	pub fn new() -> Self {
-		WasmInput {
+		DefaultInput {
 			events: VecDeque::<(button::Button, button::Event)>::new()
 		}
 	}
 }
 
-impl Input for WasmInput {
+impl Input for DefaultInput {
 	fn get_input(&mut self) -> Option<(button::Button, button::Event)> {
 		match self.events.len() > 0 {
 			true => self.events.pop_front(),
