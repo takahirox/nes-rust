@@ -64,4 +64,4 @@ See [wasm/web](https://github.com/takahirox/nes-rust/tree/master/wasm/web)
 
 ## How to install and use WebAssembly NES emulator npm package
 
-See [wasm/nodejs](https://github.com/takahirox/nes-rust/tree/master/wasm/nodejs)
+See [wasm/npm](https://github.com/takahirox/nes-rust/tree/master/wasm/npm)
