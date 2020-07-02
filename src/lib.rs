@@ -48,7 +48,7 @@ use audio::Audio;
 ///
 /// // Go!
 /// nes.bootup();
-/// let mut rgba_pixels = [256 * 240 * 4];
+/// let mut rgba_pixels = [0; 256 * 240 * 4];
 /// loop {
 ///   nes.step_frame();
 ///   nes.copy_pixels(rgba_pixels);
