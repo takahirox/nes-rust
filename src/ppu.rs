@@ -741,7 +741,7 @@ impl Ppu {
 				}
 				self.suppress_vblank = false;
 				// Pixels for this frame should be ready so update the display
-				self.display.update_screen();
+				self.display.vblank();
 			} else if self.scanline == 261 {
 				// clear vblank, sprite zero hit flag,
 				// and sprite overflow flags at cycle 1 in pre-render line 261

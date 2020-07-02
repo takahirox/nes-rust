@@ -61,10 +61,6 @@ impl Sdl2Audio {
 }
 
 impl Audio for Sdl2Audio {
-	fn resume(&self) {
-		self.device.resume();
-	}
-
 	fn push(&mut self, value: f32) {
 		// @TODO: Don't use unsafe
 		unsafe {
@@ -74,6 +70,7 @@ impl Audio for Sdl2Audio {
 			BUFFER[BUFFER_INDEX] = value;
 			BUFFER_INDEX += 1;
 		}
+		self.device.resume();
 	}
 
 	fn copy_sample_buffer(&mut self, _sample_buffer: &mut [f32]) {

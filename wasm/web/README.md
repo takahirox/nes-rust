@@ -1,8 +1,10 @@
 [nes-rust/wasm/web](https://github.com/takahirox/nes-rust/tree/master/wasm/web) is a directory for WebAssembly NES emulator compiled from [nes-rust](https://github.com/takahirox/nes-rust) and its online demo. You can import the emulator into your web page.
 
-## Online Demo
+## Online Demos / Videos
 
-[index.html](https://takahirox.github.io/nes-rust/wasm/web/index.html)
+- [Online Singleplay Demo](https://takahirox.github.io/nes-rust/wasm/web/index.html)
+- [Online Multiplay Demo](https://takahirox.github.io/nes-rust/wasm/web/multiplay.html) / [Video](https://twitter.com/superhoge/status/1205427421010247680)
+- [Online VR Multiplay Demo](https://takahirox.github.io/nes-rust/wasm/web/vr.html) / [Video](https://twitter.com/superhoge/status/1209685614074875906)
 
 ## How to import in a web page
 

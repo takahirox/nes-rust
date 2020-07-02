@@ -1198,7 +1198,6 @@ impl Cpu {
 				break;
 			}
 		}
-		self.apu.resume_audio();
 	}
 
 	fn handle_inputs(&mut self) {

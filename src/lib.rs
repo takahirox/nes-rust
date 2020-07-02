@@ -6,10 +6,13 @@ pub mod rom;
 pub mod memory;
 pub mod mapper;
 pub mod button;
-pub mod input;
 pub mod joypad;
+pub mod input;
 pub mod audio;
 pub mod display;
+pub mod default_input;
+pub mod default_audio;
+pub mod default_display;
 
 use cpu::Cpu;
 use rom::Rom;
@@ -20,16 +23,19 @@ use audio::Audio;
 
 /// NES emulator.
 ///
-/// You need to implement [`input::Input`](./input/trait.Input.html),
-/// [`display::Display`](./display/trait.Display.html), and
-/// [`audio::Audio`](./audio/trait.Audio.html) traits for your platform
-/// specific Input/Output.
-///
 /// ```ignore
-/// // Create Nes with your platform specific Input/Output
-/// let input = Box::new(MyInput::new());
-/// let display = Box::new(MyDisplay::new());
-/// let audio = Box::new(MyAudio::new());
+/// use std::fs::File;
+/// use std::io::Read;
+/// use std::time::Duration;
+/// use nes_rust::Nes;
+/// use nes_rust::rom::Rom;
+/// use nes_rust::default_input::DefaultInput;
+/// use nes_rust::default_audio::DefaultAudio;
+/// use nes_rust::default_display::DefaultDisplay;
+///
+/// let input = Box::new(DefaultInput::new());
+/// let display = Box::new(DefaultDisplay::new());
+/// let audio = Box::new(DefaultAudio::new());
 /// let mut nes = Nes::new(input, display, audio);
 ///
 /// // Load and set Rom from rom image binary
@@ -42,14 +48,16 @@ use audio::Audio;
 ///
 /// // Go!
 /// nes.bootup();
+/// let mut rgba_pixels = [256 * 240 * 4];
 /// loop {
 ///   nes.step_frame();
+///   nes.copy_pixels(rgba_pixels);
+///   // Render rgba_pixels
+///   // @TODO: Audio buffer sample code is T.B.D.
+///   // Adjust sleep time for your platform
 ///   std::thread::sleep(Duration::from_millis(1));
 /// }
 /// ```
-///
-/// Refer to [`cli/src/main.rs`](https://github.com/takahirox/nes-rust/blob/master/cli/src/main.rs)
-/// as more concrete sample code.
 pub struct Nes {
 	cpu: Cpu
 }
