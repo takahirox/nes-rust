@@ -4,7 +4,7 @@
 [![Crate](https://img.shields.io/crates/v/nes_rust.svg)](https://crates.io/crates/nes_rust)
 [![npm version](https://badge.fury.io/js/nes_rust_wasm.svg)](https://badge.fury.io/js/nes_rust_wasm)
 
-nes-rust is a NES emulator written in Rust.
+nes-rust is a NES emulator written in Rust. It can be compiled to WebAssembly.
 
 ## Online Demos / Videos
 
