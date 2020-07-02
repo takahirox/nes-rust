@@ -70,7 +70,7 @@ export class WasmNes {
   free(): void;
 /**
 * Creates a `WasmNes`
-* @returns {WasmNes}
+* @returns {WasmNes} 
 */
   static new(): WasmNes;
 /**
@@ -78,7 +78,7 @@ export class WasmNes {
 *
 * # Arguments
 * * `rom` Rom image binary `Uint8Array`
-* @param {Uint8Array} contents
+* @param {Uint8Array} contents 
 */
   set_rom(contents: Uint8Array): void;
 /**
@@ -105,7 +105,7 @@ export class WasmNes {
 *
 * # Arguments
 * * `pixels` RGBA pixels `Uint8Array` or `Uint8ClampedArray`
-* @param {Uint8Array} pixels
+* @param {Uint8Array} pixels 
 */
   update_pixels(pixels: Uint8Array): void;
 /**
@@ -114,7 +114,7 @@ export class WasmNes {
 *
 * # Arguments
 * * `buffer` Audio buffer `Float32Array`
-* @param {Float32Array} buffer
+* @param {Float32Array} buffer 
 */
   update_sample_buffer(buffer: Float32Array): void;
 /**
@@ -122,7 +122,7 @@ export class WasmNes {
 *
 * # Arguments
 * * `button`
-* @param {number} button
+* @param {number} button 
 */
   press_button(button: number): void;
 /**
@@ -130,7 +130,7 @@ export class WasmNes {
 *
 * # Arguments
 * * `buffer`
-* @param {number} button
+* @param {number} button 
 */
   release_button(button: number): void;
 }
