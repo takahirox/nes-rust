@@ -30,15 +30,7 @@ nes-rust is a NES emulator written in Rust. It can be compiled to WebAssembly.
 
 ## How to import into your Rust project
 
-The emulator module is released at [crates.io](https://crates.io/crates/nes_rust
-). Add the following line into Cargo.toml of your Rust project.
-
-```
-[dependencies]
-nes_rust = "0.1.0"
-```
-
-Refer to [Document](https://docs.rs/nes_rust/0.1.0/nes_rust/struct.Nes.html) for the API.
+The emulator module and document are released at [crates.io](https://crates.io/crates/nes_rust).
 
 ## How to build core library locally
 

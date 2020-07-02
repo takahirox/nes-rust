@@ -2,7 +2,7 @@
   "name": "nes_rust_wasm",
   "description": "NES emulator written in Rust and compiled to WebAssembly",
   "author": "Takahiro <hogehoge@gachapin.jp>",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository:": "https://github.com/takahirox/nes-rust.git",
   "homepage": "https://github.com/takahirox/nes-rust/tree/master/wasm/npm",
   "bugs": "https://github.com/takahirox/nes-rust/issues",
