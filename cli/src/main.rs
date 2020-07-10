@@ -43,8 +43,11 @@ fn main() -> std::io::Result<()> {
 
 	nes.bootup();
 	loop {
-		nes.step_frame();
+		if !nes.step_frame() {
+			break;
+		}
 		// @TODO: Fix sleep duration time
 		std::thread::sleep(Duration::from_millis(1));
 	}
+	Ok(())
 }

@@ -108,8 +108,8 @@ impl Nes {
 	}
 
 	/// Executes a PPU (screen refresh) frame
-	pub fn step_frame(&mut self) {
-		self.cpu.step_frame();
+	pub fn step_frame(&mut self) -> bool {
+		self.cpu.step_frame()
 	}
 
 	/// Copies RGB pixels of screen to passed pixels.
