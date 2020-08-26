@@ -1187,7 +1187,7 @@ impl Cpu {
 		}
 	}
 
-	pub fn step_frame(&mut self) {
+	pub fn step_frame(&mut self) -> bool {
 		// Input handling should be here? Or under nes.rs?
 		self.handle_inputs();
 		// @TODO: More precise frame update detection?
@@ -1198,6 +1198,7 @@ impl Cpu {
 				break;
 			}
 		}
+		!self.input.is_quit()
 	}
 
 	fn handle_inputs(&mut self) {

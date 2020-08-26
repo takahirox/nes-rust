@@ -28,13 +28,15 @@ fn keycode_to_button(key: Keycode) -> Option<button::Button> {
 }
 
 pub struct Sdl2Input {
-	event_pump: EventPump
+	event_pump: EventPump,
+	quit: bool
 }
 
 impl Sdl2Input {
 	pub fn new(event_pump: EventPump) -> Self {
 		Sdl2Input {
-			event_pump: event_pump
+			event_pump: event_pump,
+			quit: false
 		}
 	}
 }
@@ -47,6 +49,11 @@ impl Input for Sdl2Input {
 					sdl2::event::Event::KeyDown {
 						keycode: Some(key), ..
 					} => {
+						if key == Keycode::Escape {
+							self.quit = true;
+							return None
+						}
+
 						match keycode_to_button(key) {
 							Some(button) => Some((button, button::Event::Press)),
 							None => self.get_input()
@@ -60,6 +67,10 @@ impl Input for Sdl2Input {
 							None => self.get_input()
 						}
 					},
+					sdl2::event::Event::Quit { .. } => {
+						self.quit = true;
+						None
+					}
 					_ => self.get_input()
 				}
 			},
@@ -71,5 +82,9 @@ impl Input for Sdl2Input {
 	}
 
 	fn release(&mut self, _button: button::Button) {
+	}
+
+	fn is_quit(&self) -> bool {
+		self.quit
 	}
 }
