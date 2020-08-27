@@ -43,7 +43,8 @@ fn main() -> std::io::Result<()> {
 
 	nes.bootup();
 	loop {
-		if !nes.step_frame() {
+		nes.step_frame();
+		if !nes.is_power_on() {
 			break;
 		}
 		// @TODO: Fix sleep duration time

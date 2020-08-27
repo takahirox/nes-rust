@@ -108,8 +108,8 @@ impl Nes {
 	}
 
 	/// Executes a PPU (screen refresh) frame
-	pub fn step_frame(&mut self) -> bool {
-		self.cpu.step_frame()
+	pub fn step_frame(&mut self) {
+		self.cpu.step_frame();
 	}
 
 	/// Copies RGB pixels of screen to passed pixels.
@@ -144,5 +144,10 @@ impl Nes {
 	/// * `buffer`
 	pub fn release_button(&mut self, button: Button) {
 		self.cpu.get_mut_input().release(button);
+	}
+
+	/// Checks if NES console is powered on
+	pub fn is_power_on(&self) -> bool {
+		self.cpu.is_power_on()
 	}
 }
