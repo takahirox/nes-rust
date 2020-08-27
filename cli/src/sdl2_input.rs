@@ -7,6 +7,7 @@ use nes_rust::button;
 // @TODO: Be Configurable
 fn keycode_to_button(key: Keycode) -> Option<button::Button> {
 	match key {
+		Keycode::Escape => Some(button::Button::Poweroff),
 		// joypad1
 		Keycode::Space => Some(button::Button::Start),
 		Keycode::S => Some(button::Button::Select),
@@ -28,15 +29,13 @@ fn keycode_to_button(key: Keycode) -> Option<button::Button> {
 }
 
 pub struct Sdl2Input {
-	event_pump: EventPump,
-	quit: bool
+	event_pump: EventPump
 }
 
 impl Sdl2Input {
 	pub fn new(event_pump: EventPump) -> Self {
 		Sdl2Input {
-			event_pump: event_pump,
-			quit: false
+			event_pump: event_pump
 		}
 	}
 }
@@ -49,11 +48,6 @@ impl Input for Sdl2Input {
 					sdl2::event::Event::KeyDown {
 						keycode: Some(key), ..
 					} => {
-						if key == Keycode::Escape {
-							self.quit = true;
-							return None
-						}
-
 						match keycode_to_button(key) {
 							Some(button) => Some((button, button::Event::Press)),
 							None => self.get_input()
@@ -68,9 +62,8 @@ impl Input for Sdl2Input {
 						}
 					},
 					sdl2::event::Event::Quit { .. } => {
-						self.quit = true;
-						None
-					}
+						Some((button::Button::Poweroff, button::Event::Press))
+					},
 					_ => self.get_input()
 				}
 			},
@@ -79,12 +72,10 @@ impl Input for Sdl2Input {
 	}
 
 	fn press(&mut self, _button: button::Button) {
+		// Doesn't expect to be called
 	}
 
 	fn release(&mut self, _button: button::Button) {
-	}
-
-	fn is_quit(&self) -> bool {
-		self.quit
+		// Doesn't expect to be called
 	}
 }

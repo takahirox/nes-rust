@@ -35,6 +35,8 @@ fn to_joypad_button(button: button::Button) -> joypad::Button {
  * Refer to https://wiki.nesdev.com/w/index.php/CPU
  */
 pub struct Cpu {
+	power_on: bool,
+
 	// registers
 	pc: Register<u16>,
 	sp: Register<u8>,
@@ -1095,6 +1097,7 @@ fn operation(opc: u8) -> Operation {
 impl Cpu {
 	pub fn new(input: Box<dyn Input>, display: Box<dyn Display>, audio: Box<dyn Audio>) -> Self {
 		Cpu {
+			power_on: false,
 			pc: Register::<u16>::new(),
 			sp: Register::<u8>::new(),
 			a: Register::<u8>::new(),
@@ -1117,6 +1120,7 @@ impl Cpu {
 	}
 
 	pub fn bootup(&mut self) {
+		self.power_on = true;
 		self.bootup_internal();
 		self.ppu.bootup();
 		self.apu.bootup();
@@ -1144,6 +1148,10 @@ impl Cpu {
 		self.ppu.reset();
 		self.apu.reset();
 		self.interrupt(Interrupts::RESET);
+	}
+
+	pub fn is_power_on(&self) -> bool {
+		self.power_on
 	}
 
 	fn reset_internal(&mut self) {
@@ -1187,7 +1195,7 @@ impl Cpu {
 		}
 	}
 
-	pub fn step_frame(&mut self) -> bool {
+	pub fn step_frame(&mut self) {
 		// Input handling should be here? Or under nes.rs?
 		self.handle_inputs();
 		// @TODO: More precise frame update detection?
@@ -1198,14 +1206,13 @@ impl Cpu {
 				break;
 			}
 		}
-		!self.input.is_quit()
 	}
 
 	fn handle_inputs(&mut self) {
 		while let Some((button, event)) = self.input.get_input() {
 			match button {
 				button::Button::Poweroff => {
-					// @TODO: Implement
+					self.power_on = false;
 				},
 				button::Button::Reset => {
 					self.reset();
