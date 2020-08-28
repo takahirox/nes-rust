@@ -43,7 +43,7 @@ function passArrayF32ToWasm0(arg, malloc) {
 }
 /**
 */
-export const Button = Object.freeze({ Poweroff:0,Reset:1,Select:2,Start:3,Joypad1A:4,Joypad1B:5,Joypad1Up:6,Joypad1Down:7,Joypad1Left:8,Joypad1Right:9,Joypad2A:10,Joypad2B:11,Joypad2Up:12,Joypad2Down:13,Joypad2Left:14,Joypad2Right:15, });
+export const Button = Object.freeze({ Poweroff:0,"0":"Poweroff",Reset:1,"1":"Reset",Select:2,"2":"Select",Start:3,"3":"Start",Joypad1A:4,"4":"Joypad1A",Joypad1B:5,"5":"Joypad1B",Joypad1Up:6,"6":"Joypad1Up",Joypad1Down:7,"7":"Joypad1Down",Joypad1Left:8,"8":"Joypad1Left",Joypad1Right:9,"9":"Joypad1Right",Joypad2A:10,"10":"Joypad2A",Joypad2B:11,"11":"Joypad2B",Joypad2Up:12,"12":"Joypad2Up",Joypad2Down:13,"13":"Joypad2Down",Joypad2Left:14,"14":"Joypad2Left",Joypad2Right:15,"15":"Joypad2Right", });
 /**
 * `WasmNes` is an interface between user JavaScript code and
 * WebAssembly NES emulator. The following code is example

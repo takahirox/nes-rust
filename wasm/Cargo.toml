@@ -5,7 +5,7 @@ authors = ["Takahiro <hogehoge@gachapin.jp>"]
 
 [dependencies]
 nes_rust = {path = "../"}
-wasm-bindgen = "0.2.63"
+wasm-bindgen = "0.2.67"
 
 [lib]
 name = "nes_rust_wasm"
